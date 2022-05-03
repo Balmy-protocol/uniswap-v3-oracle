@@ -1,0 +1,128 @@
+{
+  "name": "@mean-finance/uniswap-v3-oracle",
+  "version": "0.0.0",
+  "description": "Uniswap V3 Oracle",
+  "keywords": [
+    "ethereum",
+    "smart",
+    "contracts",
+    "test",
+    "solidity",
+    "hardhat",
+    "uniswap",
+    "oracle"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mean-finance/uniswap-v3-oracle.git"
+  },
+  "license": "AGPL-3.0-only",
+  "contributors": [
+    {
+      "name": "0xged",
+      "url": "https://github.com/0xged"
+    },
+    {
+      "name": "nchamo",
+      "url": "https://github.com/nchamo"
+    },
+    {
+      "name": "0xsambugs",
+      "url": "https://github.com/0xsambugs"
+    }
+  ],
+  "files": [
+    "solidity/contracts",
+    "solidity/interfaces",
+    "artifacts/solidity/**/*.json",
+    "!artifacts/solidity/**/**/*.dbg.json",
+    "typechained",
+    "deployments",
+    "!deployments/localhost",
+    "!.env",
+    "!**/.DS_Store"
+  ],
+  "scripts": {
+    "compile": "eth-sdk && hardhat compile",
+    "compile:test": "cross-env TEST=true hardhat compile",
+    "coverage": "hardhat coverage",
+    "deploy": "npx hardhat deploy",
+    "docs": "solidity-docgen --solc-module solc-0.8",
+    "fork:node": "cross-env FORK=true hardhat node",
+    "fork:script": "cross-env FORK=true hardhat run",
+    "postinstall": "husky install && yarn compile:test",
+    "lint:check": "cross-env solhint 'contracts/**/*.sol' 'interfaces/**/*.sol' && cross-env prettier --check './**'",
+    "lint:fix": "sort-package-json && cross-env prettier --write './**' && cross-env solhint --fix 'contracts/**/*.sol' 'interfaces/**/*.sol'",
+    "prepare": "husky install",
+    "prepublishOnly": "hardhat clean && hardhat compile && pinst --disable",
+    "postpublish": "pinst --enable",
+    "release": "standard-version",
+    "test": "yarn compile:test && cross-env TEST=true mocha",
+    "test:all": "yarn test './test/e2e/**/*.spec.ts' && cross-env TEST=true mocha 'test/unit/**/*.spec.ts'",
+    "test:e2e": "yarn test './test/e2e/**/*.spec.ts'",
+    "test:gas": "cross-env REPORT_GAS=1 npx hardhat test",
+    "test:unit": "yarn test 'test/unit/**/*.spec.ts'"
+  },
+  "lint-staged": {
+    "*.{js,css,md,ts,sol}": "prettier --write",
+    "*.sol": "cross-env solhint --fix 'contracts/**/*.sol' 'interfaces/**/*.sol'",
+    "package.json": "sort-package-json"
+  },
+  "resolutions": {
+    "cli-table3@^0.5.0/colors": "1.4.0",
+    "cli-table@^0.3.1/colors": "1.0.3",
+    "eth-gas-reporter/colors": "1.4.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "4.6.0"
+  },
+  "devDependencies": {
+    "@codechecks/client": "0.1.12",
+    "@commitlint/cli": "16.2.4",
+    "@commitlint/config-conventional": "16.2.4",
+    "@defi-wonderland/smock": "2.0.7",
+    "@dethcrypto/eth-sdk": "0.3.1",
+    "@dethcrypto/eth-sdk-client": "0.1.6",
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@0.3.0-beta.13",
+    "@nomiclabs/hardhat-etherscan": "3.0.3",
+    "@nomiclabs/hardhat-waffle": "2.0.3",
+    "@typechain/ethers-v5": "10.0.0",
+    "@typechain/hardhat": "6.0.0",
+    "@types/chai": "4.3.1",
+    "@types/chai-as-promised": "7.1.5",
+    "@types/lodash": "4.14.182",
+    "@types/mocha": "9.1.1",
+    "@types/node": "17.0.31",
+    "chai": "4.3.6",
+    "chai-as-promised": "7.1.1",
+    "cross-env": "7.0.3",
+    "dotenv": "16.0.0",
+    "ethereum-waffle": "3.4.4",
+    "ethers": "5.6.5",
+    "hardhat": "2.9.3",
+    "hardhat-deploy": "0.11.4",
+    "hardhat-gas-reporter": "1.0.8",
+    "hardhat-preprocessor": "0.1.4",
+    "husky": "7.0.4",
+    "lint-staged": "12.4.1",
+    "lodash": "4.17.21",
+    "mocha": "10.0.0",
+    "pinst": "3.0.0",
+    "prettier": "2.6.2",
+    "prettier-plugin-solidity": "1.0.0-beta.19",
+    "solc-0.8": "npm:solc@0.8.13",
+    "solhint": "3.3.7",
+    "solhint-plugin-prettier": "0.0.5",
+    "solidity-coverage": "0.7.21",
+    "solidity-docgen": "0.5.16",
+    "sort-package-json": "1.57.0",
+    "standard-version": "9.3.2",
+    "ts-node": "10.7.0",
+    "tsconfig-paths": "4.0.0",
+    "typechain": "8.0.0",
+    "typescript": "4.6.4"
+  },
+  "engines": {
+    "node": "^16.0.0"
+  }
+}

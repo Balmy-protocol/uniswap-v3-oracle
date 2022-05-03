@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@artifacts": ["artifacts/*"],
+      "@deploy": ["deploy/*"],
+      "@deployments": ["deployments/*"],
+      "@typechained": ["typechained/index"],
+      "@utils": ["test/utils/index"],
+      "@utils/*": ["test/utils/*"],
+      "@e2e/*": ["test/e2e/*"],
+      "@unit/*": ["test/unit/*"],
+      "@eth-sdk-types": ["node_modules/.dethcrypto/eth-sdk-client/cjs/types"]
+    }
+  },
+  "include": ["./scripts", "./deploy", "./test"],
+  "files": ["./hardhat.config.ts"]
+}

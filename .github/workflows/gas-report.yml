@@ -1,0 +1,46 @@
+name: Gas report
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out github repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+
+      - name: Compile eth-sdk
+        run: yarn eth-sdk
+
+      - name: Run gas tests
+        run: yarn test:gas
+        env:
+          NODE_URI_ETHEREUM: https://eth-mainnet.alchemyapi.io/v2/${{ secrets.ALCHEMYKEY }}
+
+      - name: Run eth gas reporter
+        run: npx codechecks
+        env:
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          CC_SECRET: ${{ secrets.CC }}
