@@ -6,6 +6,14 @@ import '../StaticOracle.sol';
 contract StaticOracleMock is StaticOracle {
   constructor(IUniswapV3Factory _factory, uint8 _cardinalityPerMinute) StaticOracle(_factory, _cardinalityPerMinute) {}
 
+  function knownFeeTiers() external view returns (uint24[] memory) {
+    return _knownFeeTiers;
+  }
+
+  function addKnownFeeTier(uint24 _feeTier) external {
+    _knownFeeTiers.push(_feeTier);
+  }
+
   function prepare(address[] memory pools, uint32 period) external {
     _prepare(pools, period);
   }

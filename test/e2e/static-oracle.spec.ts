@@ -5,7 +5,7 @@ import { JsonRpcSigner } from '@ethersproject/providers';
 import { BigNumber, utils } from 'ethers';
 import { ethers } from 'hardhat';
 import { evm, wallet } from '@utils';
-import { given, then, when } from '@utils/bdd';
+import { contract, given, then, when } from '@utils/bdd';
 import { expect } from 'chai';
 import { getNodeUrl } from 'utils/env';
 import forkBlockNumber from './fork-block-numbers';
@@ -13,7 +13,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const daiWhaleAddress = '0x16463c0fdb6ba9618909f5b120ea1581618c1b9e';
 
-describe('DAI @skip-on-coverage', () => {
+contract('StaticOracle @skip-on-coverage', () => {
   let stranger: SignerWithAddress;
   let daiWhale: JsonRpcSigner;
   let dai: Dai;

@@ -11,24 +11,24 @@ import '../interfaces/IStaticOracle.sol';
 /// @notice Oracle contract for price quoting against Uniswap V3 pools
 contract StaticOracle is IStaticOracle {
   /// @inheritdoc IStaticOracle
-  IUniswapV3Factory public immutable override factory;
+  IUniswapV3Factory public immutable override UNISWAP_V3_FACTORY;
   /// @inheritdoc IStaticOracle
-  uint8 public immutable override cardinalityPerMinute;
-  uint24[] internal knownFeeTiers;
+  uint8 public immutable override CARDINALITY_PER_MINUTE;
+  uint24[] internal _knownFeeTiers;
 
-  constructor(IUniswapV3Factory _factory, uint8 _cardinalityPerMinute) {
-    factory = _factory;
-    cardinalityPerMinute = _cardinalityPerMinute;
+  constructor(IUniswapV3Factory _UNISWAP_V3_FACTORY, uint8 _CARDINALITY_PER_MINUTE) {
+    UNISWAP_V3_FACTORY = _UNISWAP_V3_FACTORY;
+    CARDINALITY_PER_MINUTE = _CARDINALITY_PER_MINUTE;
 
     // Assign default fee tiers
-    knownFeeTiers.push(300);
-    knownFeeTiers.push(5000);
-    knownFeeTiers.push(10000);
+    _knownFeeTiers.push(300);
+    _knownFeeTiers.push(5000);
+    _knownFeeTiers.push(10000);
   }
 
   /// @inheritdoc IStaticOracle
   function supportedFeeTiers() external view override returns (uint24[] memory) {
-    return knownFeeTiers;
+    return _knownFeeTiers;
   }
 
   /// @inheritdoc IStaticOracle
@@ -72,7 +72,7 @@ contract StaticOracle is IStaticOracle {
     address tokenB,
     uint32 period
   ) external override returns (address[] memory preparedPools) {
-    preparedPools = _getPoolsForTiers(tokenA, tokenB, knownFeeTiers);
+    preparedPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
     _prepare(preparedPools, period);
   }
 
@@ -94,16 +94,16 @@ contract StaticOracle is IStaticOracle {
   }
 
   /// @inheritdoc IStaticOracle
-  function addNewFeeTeer(uint24 feeTier) external override {
-    require(factory.feeAmountTickSpacing(feeTier) != 0, 'Invalid fee tier');
-    for (uint256 i; i < knownFeeTiers.length; i++) {
-      require(knownFeeTiers[i] != feeTier, 'Tier already supported');
+  function addNewFeeTier(uint24 feeTier) external override {
+    require(UNISWAP_V3_FACTORY.feeAmountTickSpacing(feeTier) != 0, 'Invalid fee tier');
+    for (uint256 i; i < _knownFeeTiers.length; i++) {
+      require(_knownFeeTiers[i] != feeTier, 'Tier already supported');
     }
-    knownFeeTiers.push(feeTier);
+    _knownFeeTiers.push(feeTier);
   }
 
   function _prepare(address[] memory pools, uint32 period) internal {
-    uint16 cardinality = uint16((period * cardinalityPerMinute) / 60) + 1; // We add 1 just to be on the safe side
+    uint16 cardinality = uint16((period * CARDINALITY_PER_MINUTE) / 60) + 1; // We add 1 just to be on the safe side
     for (uint256 i; i < pools.length; i++) {
       IUniswapV3Pool(pools[i]).increaseObservationCardinalityNext(cardinality);
     }
@@ -139,7 +139,7 @@ contract StaticOracle is IStaticOracle {
     address tokenB,
     uint32 period
   ) internal view returns (address[] memory) {
-    address[] memory existingPools = _getPoolsForTiers(tokenA, tokenB, knownFeeTiers);
+    address[] memory existingPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
     // If period is 0, then just return all existing pools
     if (period == 0) return existingPools;
 
@@ -167,7 +167,7 @@ contract StaticOracle is IStaticOracle {
     address[] memory pools = new address[](feeTiers.length);
     uint256 validPools;
     for (uint256 i; i < feeTiers.length; i++) {
-      address pool = factory.getPool(tokenA, tokenB, feeTiers[i]);
+      address pool = UNISWAP_V3_FACTORY.getPool(tokenA, tokenB, feeTiers[i]);
       if (pool != address(0)) {
         pools[validPools++] = pool;
       }

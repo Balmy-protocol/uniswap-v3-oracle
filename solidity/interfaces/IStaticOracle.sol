@@ -11,12 +11,12 @@ interface IStaticOracle {
   /// @notice Returns the address of the Uniswap V3 factory
   /// @dev This value is assigned during deployment and cannot be changed
   /// @return The address of the Uniswap V3 factory
-  function factory() external view returns (IUniswapV3Factory);
+  function UNISWAP_V3_FACTORY() external view returns (IUniswapV3Factory);
 
   /// @notice Returns how many observations are needed per minute in Uniswap V3 oracles, on the deployed chain
   /// @dev This value is assigned during deployment and cannot be changed
   /// @return Number of observation that are needed per minute
-  function cardinalityPerMinute() external view returns (uint8);
+  function CARDINALITY_PER_MINUTE() external view returns (uint8);
 
   /// @notice Returns all supported fee tiers
   /// @return The supported fee tiers
@@ -106,5 +106,5 @@ interface IStaticOracle {
   /// @notice Adds support for a new fee tier
   /// @dev Will revert if the given tier is invalid, or already supported
   /// @param feeTier The new fee tier to add
-  function addNewFeeTeer(uint24 feeTier) external;
+  function addNewFeeTier(uint24 feeTier) external;
 }
