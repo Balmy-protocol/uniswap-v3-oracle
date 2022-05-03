@@ -14,7 +14,7 @@ contract StaticOracle is IStaticOracle {
   IUniswapV3Factory public immutable override factory;
   /// @inheritdoc IStaticOracle
   uint8 public immutable override cardinalityPerMinute;
-  uint24[] private knownFeeTiers;
+  uint24[] internal knownFeeTiers;
 
   constructor(IUniswapV3Factory _factory, uint8 _cardinalityPerMinute) {
     factory = _factory;
@@ -38,8 +38,8 @@ contract StaticOracle is IStaticOracle {
     address quoteToken,
     uint32 period
   ) external view override returns (uint256 quoteAmount, address[] memory queriedPools) {
-    queriedPools = getQueryablePoolsForTiers(baseToken, quoteToken, period);
-    quoteAmount = internalQuote(baseAmount, baseToken, quoteToken, queriedPools, period);
+    queriedPools = _getQueryablePoolsForTiers(baseToken, quoteToken, period);
+    quoteAmount = _quote(baseAmount, baseToken, quoteToken, queriedPools, period);
   }
 
   /// @inheritdoc IStaticOracle
@@ -50,9 +50,9 @@ contract StaticOracle is IStaticOracle {
     uint24[] calldata feeTiers,
     uint32 period
   ) external view override returns (uint256 quoteAmount, address[] memory queriedPools) {
-    queriedPools = getPoolsForTiers(baseToken, quoteToken, feeTiers);
+    queriedPools = _getPoolsForTiers(baseToken, quoteToken, feeTiers);
     require(queriedPools.length == feeTiers.length, 'Given tier does not have pool');
-    quoteAmount = internalQuote(baseAmount, baseToken, quoteToken, queriedPools, period);
+    quoteAmount = _quote(baseAmount, baseToken, quoteToken, queriedPools, period);
   }
 
   /// @inheritdoc IStaticOracle
@@ -63,7 +63,7 @@ contract StaticOracle is IStaticOracle {
     address[] calldata pools,
     uint32 period
   ) external view override returns (uint256 quoteAmount) {
-    return internalQuote(baseAmount, baseToken, quoteToken, pools, period);
+    return _quote(baseAmount, baseToken, quoteToken, pools, period);
   }
 
   /// @inheritdoc IStaticOracle
@@ -72,8 +72,8 @@ contract StaticOracle is IStaticOracle {
     address tokenB,
     uint32 period
   ) external override returns (address[] memory preparedPools) {
-    preparedPools = getPoolsForTiers(tokenA, tokenB, knownFeeTiers);
-    internalPrepare(preparedPools, period);
+    preparedPools = _getPoolsForTiers(tokenA, tokenB, knownFeeTiers);
+    _prepare(preparedPools, period);
   }
 
   /// @inheritdoc IStaticOracle
@@ -83,14 +83,14 @@ contract StaticOracle is IStaticOracle {
     uint24[] calldata feeTiers,
     uint32 period
   ) external override returns (address[] memory preparedPools) {
-    preparedPools = getPoolsForTiers(tokenA, tokenB, feeTiers);
+    preparedPools = _getPoolsForTiers(tokenA, tokenB, feeTiers);
     require(preparedPools.length == feeTiers.length, 'Given tier does not have pool');
-    internalPrepare(preparedPools, period);
+    _prepare(preparedPools, period);
   }
 
   /// @inheritdoc IStaticOracle
   function prepareSpecificPoolsWithTimePeriod(address[] calldata pools, uint32 period) external override {
-    internalPrepare(pools, period);
+    _prepare(pools, period);
   }
 
   /// @inheritdoc IStaticOracle
@@ -102,20 +102,20 @@ contract StaticOracle is IStaticOracle {
     knownFeeTiers.push(feeTier);
   }
 
-  function internalPrepare(address[] memory pools, uint32 period) private {
+  function _prepare(address[] memory pools, uint32 period) internal {
     uint16 cardinality = uint16((period * cardinalityPerMinute) / 60) + 1; // We add 1 just to be on the safe side
     for (uint256 i; i < pools.length; i++) {
       IUniswapV3Pool(pools[i]).increaseObservationCardinalityNext(cardinality);
     }
   }
 
-  function internalQuote(
+  function _quote(
     uint128 baseAmount,
     address baseToken,
     address quoteToken,
     address[] memory pools,
     uint32 period
-  ) private view returns (uint256 quoteAmount) {
+  ) internal view returns (uint256 quoteAmount) {
     require(pools.length > 0, 'No defined pools');
 
     OracleLibrary.WeightedTickData[] memory tickData = new OracleLibrary.WeightedTickData[](pools.length);
@@ -134,12 +134,12 @@ contract StaticOracle is IStaticOracle {
   /// @param tokenB The other of the pair's tokens
   /// @param period The period that we want to query for
   /// @return queryablePools All pools that can be queried
-  function getQueryablePoolsForTiers(
+  function _getQueryablePoolsForTiers(
     address tokenA,
     address tokenB,
     uint32 period
-  ) private view returns (address[] memory) {
-    address[] memory existingPools = getPoolsForTiers(tokenA, tokenB, knownFeeTiers);
+  ) internal view returns (address[] memory) {
+    address[] memory existingPools = _getPoolsForTiers(tokenA, tokenB, knownFeeTiers);
     // If period is 0, then just return all existing pools
     if (period == 0) return existingPools;
 
@@ -151,7 +151,7 @@ contract StaticOracle is IStaticOracle {
       }
     }
 
-    return copyValidElementsIntoNewArray(queryablePools, validPools);
+    return _copyValidElementsIntoNewArray(queryablePools, validPools);
   }
 
   /// @notice Takes a pair and some fee tiers, and returns all pools that match those tiers
@@ -159,11 +159,11 @@ contract StaticOracle is IStaticOracle {
   /// @param tokenB The other of the pair's tokens
   /// @param feeTiers The fee tiers to consider when searching for the pair's pools
   /// @return pools The pools for the given pair and fee tiers
-  function getPoolsForTiers(
+  function _getPoolsForTiers(
     address tokenA,
     address tokenB,
     uint24[] memory feeTiers
-  ) private view returns (address[] memory) {
+  ) internal view returns (address[] memory) {
     address[] memory pools = new address[](feeTiers.length);
     uint256 validPools;
     for (uint256 i; i < feeTiers.length; i++) {
@@ -173,11 +173,11 @@ contract StaticOracle is IStaticOracle {
       }
     }
 
-    return copyValidElementsIntoNewArray(pools, validPools);
+    return _copyValidElementsIntoNewArray(pools, validPools);
   }
 
-  function copyValidElementsIntoNewArray(address[] memory tempArray, uint256 amountOfValidElements)
-    private
+  function _copyValidElementsIntoNewArray(address[] memory tempArray, uint256 amountOfValidElements)
+    internal
     pure
     returns (address[] memory array)
   {
