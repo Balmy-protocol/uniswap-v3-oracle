@@ -115,7 +115,7 @@ contract StaticOracle is IStaticOracle {
     address quoteToken,
     address[] memory pools,
     uint32 period
-  ) internal view returns (uint256 quoteAmount) {
+  ) internal view virtual returns (uint256 quoteAmount) {
     require(pools.length > 0, 'No defined pools');
 
     OracleLibrary.WeightedTickData[] memory tickData = new OracleLibrary.WeightedTickData[](pools.length);
@@ -138,7 +138,7 @@ contract StaticOracle is IStaticOracle {
     address tokenA,
     address tokenB,
     uint32 period
-  ) internal view returns (address[] memory) {
+  ) internal view virtual returns (address[] memory) {
     address[] memory existingPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
     // If period is 0, then just return all existing pools
     if (period == 0) return existingPools;
@@ -163,7 +163,7 @@ contract StaticOracle is IStaticOracle {
     address tokenA,
     address tokenB,
     uint24[] memory feeTiers
-  ) internal view returns (address[] memory) {
+  ) internal view virtual returns (address[] memory) {
     address[] memory pools = new address[](feeTiers.length);
     uint256 validPools;
     for (uint256 i; i < feeTiers.length; i++) {

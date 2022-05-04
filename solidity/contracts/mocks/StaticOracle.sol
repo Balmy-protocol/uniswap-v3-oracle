@@ -36,6 +36,23 @@ contract StaticOracleMock is StaticOracle {
     return _getQueryablePoolsForTiers(tokenA, tokenB, period);
   }
 
+  address[] internal _poolsForTiersReturn;
+
+  function setPoolForTiersReturn(address[] memory __poolsForTiersReturn) external {
+    _poolsForTiersReturn = __poolsForTiersReturn;
+  }
+
+  function _getPoolsForTiers(
+    address tokenA,
+    address tokenB,
+    uint24[] memory feeTiers
+  ) internal view override returns (address[] memory) {
+    if (_poolsForTiersReturn.length > 0) {
+      return _poolsForTiersReturn;
+    }
+    return super._getPoolsForTiers(tokenA, tokenB, feeTiers);
+  }
+
   function getPoolsForTiers(
     address tokenA,
     address tokenB,

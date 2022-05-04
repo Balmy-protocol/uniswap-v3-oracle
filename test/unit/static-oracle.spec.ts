@@ -14,6 +14,7 @@ import { snapshot } from '@utils/evm';
 import { hexZeroPad } from 'ethers/lib/utils';
 import { wallet } from '@utils';
 import { constants } from 'ethers';
+import moment from 'moment';
 
 chai.use(smock.matchers);
 
@@ -97,16 +98,72 @@ contract('StaticOracle', () => {
   });
 
   describe('prepareAllAvailablePoolsWithTimePeriod', () => {
-    then('todo');
+    let pools: FakeContract<IUniswapV3Pool>[];
+    const PERIOD = moment.duration('2', 'minutes').as('seconds');
+    given(async () => {
+      pools = [uniswapV3Pool, uniswapV3Pool2];
+      await staticOracle.setPoolForTiersReturn(pools.map((pool) => pool.address));
+      await staticOracle.prepareAllAvailablePoolsWithTimePeriod(TOKEN_A, TOKEN_B, PERIOD);
+    });
+    when('called', () => {
+      thenIncreasesCardinalityForPeriodForPools({
+        pools: () => pools,
+        period: PERIOD,
+      });
+    });
   });
 
   describe('prepareSpecificFeeTiersWithTimePeriod', () => {
-    then('todo');
+    when('sending tiers that do not have pool', () => {
+      given(async () => {
+        await staticOracle.setPoolForTiersReturn([]);
+      });
+      then('tx reverts with message', async () => {
+        await expect(staticOracle.prepareSpecificFeeTiersWithTimePeriod(TOKEN_A, TOKEN_B, [300], 100)).to.be.revertedWith(
+          'Given tier does not have pool'
+        );
+      });
+    });
+    when('all sent tiers have pools', () => {
+      let pools: FakeContract<IUniswapV3Pool>[];
+      const PERIOD = moment.duration('2', 'minutes').as('seconds');
+      given(async () => {
+        pools = [uniswapV3Pool];
+        await staticOracle.setPoolForTiersReturn(pools.map((pool) => pool.address));
+        await staticOracle.prepareSpecificFeeTiersWithTimePeriod(TOKEN_A, TOKEN_B, [300], PERIOD);
+      });
+      thenIncreasesCardinalityForPeriodForPools({
+        pools: () => pools,
+        period: PERIOD,
+      });
+    });
   });
 
   describe('prepareSpecificPoolsWithTimePeriod', () => {
-    then('todo');
+    let pools: FakeContract<IUniswapV3Pool>[];
+    const PERIOD = moment.duration('1', 'minutes').as('seconds');
+    given(async () => {
+      pools = [uniswapV3Pool, uniswapV3Pool2];
+      await staticOracle.prepareSpecificPoolsWithTimePeriod(
+        pools.map((pool) => pool.address),
+        PERIOD
+      );
+    });
+    thenIncreasesCardinalityForPeriodForPools({
+      pools: () => pools,
+      period: PERIOD,
+    });
   });
+
+  function thenIncreasesCardinalityForPeriodForPools({ pools, period }: { pools: () => FakeContract<IUniswapV3Pool>[]; period: number }): void {
+    then('increases cardinality correctly for pools', () => {
+      const poolsToTest = pools();
+      const cardinality = getCardinalityForPeriod(period);
+      for (let i = 0; i < poolsToTest.length; i++) {
+        expect(poolsToTest[i].increaseObservationCardinalityNext).to.have.been.calledWith(cardinality);
+      }
+    });
+  }
 
   describe('addNewFeeTier', () => {
     const NEW_TIER = 20_000;
@@ -140,7 +197,19 @@ contract('StaticOracle', () => {
   });
 
   describe('_prepare', () => {
-    then('todo');
+    let pools: FakeContract<IUniswapV3Pool>[];
+    const PERIOD = moment.duration('1', 'minutes').as('seconds');
+    given(async () => {
+      pools = [uniswapV3Pool, uniswapV3Pool2];
+      await staticOracle.prepare(
+        pools.map((pool) => pool.address),
+        PERIOD
+      );
+    });
+    thenIncreasesCardinalityForPeriodForPools({
+      pools: () => pools,
+      period: PERIOD,
+    });
   });
 
   describe('_quote', () => {
@@ -148,7 +217,17 @@ contract('StaticOracle', () => {
   });
 
   describe('_getQueryablePoolsForTiers', () => {
-    then('todo');
+    when('period is zero', () => {
+      then('returns all pools for that tier');
+    });
+    when('period is not zero', () => {
+      context(`and all pool's observations are bigger or equal than period`, () => {
+        then('returns all pools');
+      });
+      context(`and not all pool's observations are bigger or equal than period`, () => {
+        then('returns only those who are');
+      });
+    });
   });
 
   describe('_getPoolsForTiers', () => {
@@ -205,5 +284,9 @@ contract('StaticOracle', () => {
   function addPoolToFactory(tokenA: string, tokenB: string, fee: number, pool: string) {
     const key = `${tokenA}-${tokenB}-${fee}`;
     supportedPools.set(key, pool);
+  }
+
+  function getCardinalityForPeriod(period: number): number {
+    return (period * CARDINALITY_PER_MINUTE) / 60 + 1;
   }
 });
