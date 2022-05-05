@@ -115,7 +115,7 @@ contract StaticOracle is IStaticOracle {
     address quoteToken,
     address[] memory pools,
     uint32 period
-  ) internal view virtual returns (uint256 quoteAmount) {
+  ) internal view returns (uint256 quoteAmount) {
     require(pools.length > 0, 'No defined pools');
 
     OracleLibrary.WeightedTickData[] memory tickData = new OracleLibrary.WeightedTickData[](pools.length);

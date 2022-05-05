@@ -13,7 +13,7 @@ import { ethers } from 'hardhat';
 import { snapshot } from '@utils/evm';
 import { hexZeroPad } from 'ethers/lib/utils';
 import { wallet } from '@utils';
-import { constants } from 'ethers';
+import { constants, utils } from 'ethers';
 import moment from 'moment';
 
 chai.use(smock.matchers);
@@ -85,17 +85,10 @@ contract('StaticOracle', () => {
     });
   });
 
-  describe('quoteAllAvailablePoolsWithTimePeriod', () => {
-    then('todo');
-  });
-
-  describe('quoteSpecificFeeTiersWithTimePeriod', () => {
-    then('todo');
-  });
-
-  describe('quoteSpecificPoolsWithTimePeriod', () => {
-    then('todo');
-  });
+  // All quotes will be tested in integration tests.
+  // describe('quoteAllAvailablePoolsWithTimePeriod', () => { });
+  // describe('quoteSpecificFeeTiersWithTimePeriod', () => { });
+  // describe('quoteSpecificPoolsWithTimePeriod', () => { });
 
   describe('prepareAllAvailablePoolsWithTimePeriod', () => {
     let pools: FakeContract<IUniswapV3Pool>[];
@@ -213,22 +206,76 @@ contract('StaticOracle', () => {
   });
 
   describe('_quote', () => {
-    then('todo');
+    when('not quoting any pool', () => {
+      then('tx reverts with message', async () => {
+        await expect(staticOracle.quote(utils.parseEther('1'), TOKEN_A, TOKEN_B, [], 100)).to.be.revertedWith('Given tier does not have pool');
+      });
+    });
   });
 
   describe('_getQueryablePoolsForTiers', () => {
+    given(async () => {
+      await staticOracle.setPoolForTiersReturn([uniswapV3Pool.address, uniswapV3Pool2.address]);
+    });
     when('period is zero', () => {
-      then('returns all pools for that tier');
+      then('returns all pools for that tier', async () => {
+        expect(await staticOracle.getQueryablePoolsForTiers(TOKEN_A, TOKEN_B, 0)).to.eql([uniswapV3Pool.address, uniswapV3Pool2.address]);
+      });
     });
     when('period is not zero', () => {
+      const PERIOD = moment.duration('2', 'minutes').as('seconds');
       context(`and all pool's observations are bigger or equal than period`, () => {
-        then('returns all pools');
+        given(() => {
+          setLastTradeTimeToPool({
+            pool: uniswapV3Pool,
+            tradeTimestamp: moment().unix() - PERIOD * 1.5,
+          });
+          setLastTradeTimeToPool({
+            pool: uniswapV3Pool2,
+            tradeTimestamp: moment().unix() - PERIOD * 1.5,
+          });
+        });
+        then('returns all pools', async () => {
+          expect(await staticOracle.getQueryablePoolsForTiers(TOKEN_A, TOKEN_B, PERIOD)).to.eql([uniswapV3Pool.address, uniswapV3Pool2.address]);
+        });
       });
       context(`and not all pool's observations are bigger or equal than period`, () => {
-        then('returns only those who are');
+        given(() => {
+          setLastTradeTimeToPool({
+            pool: uniswapV3Pool,
+            tradeTimestamp: moment().unix() - PERIOD * 1.5,
+          });
+          setLastTradeTimeToPool({
+            pool: uniswapV3Pool2,
+            tradeTimestamp: moment().unix() - PERIOD / 2,
+          });
+        });
+        then('returns only those who are', async () => {
+          expect(await staticOracle.getQueryablePoolsForTiers(TOKEN_A, TOKEN_B, PERIOD)).to.eql([uniswapV3Pool.address]);
+        });
       });
     });
   });
+
+  function setLastTradeTimeToPool({ pool, tradeTimestamp }: { pool: FakeContract<IUniswapV3Pool>; tradeTimestamp: number }): void {
+    const observationIndex = 4;
+    const observationCardinality = 7;
+    pool.slot0.returns([
+      0, // sqrtPriceX96
+      0, // tick
+      observationIndex, // observationIndex
+      observationCardinality, // observationCardinality
+      0, // observationCardinalityNext
+      0, // feeProtocol
+      true, // unlocked
+    ]);
+    pool.observations.whenCalledWith((observationIndex + 1) % observationCardinality).returns([
+      tradeTimestamp, // blockTimestamp,
+      0, // tickCumulative,
+      0, // secondsPerLiquidityCumulativeX128,
+      true, // initialized
+    ]);
+  }
 
   describe('_getPoolsForTiers', () => {
     when('sending none fee tiers', () => {
