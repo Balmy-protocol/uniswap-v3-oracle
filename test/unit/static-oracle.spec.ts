@@ -45,6 +45,10 @@ contract('StaticOracle @skip-on-coverage', () => {
 
   beforeEach('Deploy and configure', async () => {
     supportedPools = new Map<string, string>();
+    uniswapV3Pool.observations.reset();
+    uniswapV3Pool.slot0.reset();
+    uniswapV3Pool2.observations.reset();
+    uniswapV3Pool2.slot0.reset();
     uniswapV3Factory.feeAmountTickSpacing.reset();
     uniswapV3Factory.getPool.reset();
     uniswapV3Factory.getPool.returns(({ tokenA, tokenB, fee }: { tokenA: string; tokenB: string; fee: number }) => {
@@ -84,11 +88,6 @@ contract('StaticOracle @skip-on-coverage', () => {
       });
     });
   });
-
-  // All quotes will be tested in integration tests.
-  // describe('quoteAllAvailablePoolsWithTimePeriod', () => { });
-  // describe('quoteSpecificFeeTiersWithTimePeriod', () => { });
-  // describe('quoteSpecificPoolsWithTimePeriod', () => { });
 
   describe('prepareAllAvailablePoolsWithTimePeriod', () => {
     let pools: FakeContract<IUniswapV3Pool>[];

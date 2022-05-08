@@ -44,13 +44,6 @@ contract('StaticOracle', () => {
     let feedPrice: number;
     const PRICE_THRESHOLD = 40;
     given(async () => {
-      // We fork from ethereum mainnet so we can compare
-      // correctly our quote
-      await evm.reset({
-        jsonRpcUrl: getNodeUrl('ethereum'),
-      });
-      await deployments.fixture(['StaticOracle'], { keepExistingDeployments: false });
-      staticOracle = await ethers.getContract<StaticOracle>('StaticOracle');
       feedPrice = await getLastPrice(WETH);
     });
     it('returns correct twap', async () => {
