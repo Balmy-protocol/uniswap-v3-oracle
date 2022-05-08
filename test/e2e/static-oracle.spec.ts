@@ -1,6 +1,5 @@
 import { bytecode as UniswapV3Pool__bytecode } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json';
 import { bytecode as UniswapV3Factory__bytecode } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json';
-import blablaArtifact from '@uniswap/v3-periphery/artifacts/contracts/NonfungibleTokenPositionDescriptor.sol/NonfungibleTokenPositionDescriptor.json';
 import { ethers } from 'hardhat';
 import { evm, wallet } from '@utils';
 import { contract, given, then, when } from '@utils/bdd';
@@ -12,25 +11,13 @@ import {
   NonfungiblePositionManager,
   NonfungiblePositionManager__factory,
   StaticOracle,
-  IUniswapV3Pool__factory,
   IUniswapV3Factory,
   IUniswapV3Factory__factory,
-  SwapRouter__factory,
-  SwapRouter,
-  TickLens__factory,
-  TickLens,
-  NFTDescriptor__factory,
-  NFTDescriptor,
-  NonfungibleTokenPositionDescriptor,
-  NonfungibleTokenPositionDescriptor__factory,
-  QuoterV2__factory,
-  QuoterV2,
   StaticOracleMock__factory,
-  WETH9__factory,
 } from '@typechained';
 import moment from 'moment';
-import { FeeAmount, encodePriceSqrt, getCreate2Address } from '@utils/uniswap';
-import { ContractFactory, utils } from 'ethers';
+import { FeeAmount, encodePriceSqrt, getCreate2Address, getMinTick, TICK_SPACINGS, getMaxTick } from '@utils/uniswap';
+import { constants, ContractFactory, utils } from 'ethers';
 
 contract('StaticOracle', () => {
   let deployer: SignerWithAddress;
@@ -47,74 +34,9 @@ contract('StaticOracle', () => {
   const PERIOD = moment.duration('3', 'minutes').as('seconds');
 
   async function deployUniV3(): Promise<void> {
-    const wethContractFactory = new ContractFactory(WETH9__factory.abi, WETH9__factory.bytecode, deployer);
-
-    const weth = await wethContractFactory.deploy();
-    console.log('weth address', weth.address);
-
     const uniswapFactoryContractFactory = new ContractFactory(IUniswapV3Factory__factory.abi, UniswapV3Factory__bytecode, deployer);
 
     factory = (await uniswapFactoryContractFactory.deploy()) as IUniswapV3Factory;
-    console.log('factory address', factory.address);
-
-    // Proxy admin
-
-    // Tick lens
-    // const tickLensContractFactory = new ContractFactory(
-    //   TickLens__factory.abi,
-    //   TickLens__factory.bytecode,
-    //   deployer
-    // );
-
-    // const tickLens = (await tickLensContractFactory.deploy()) as TickLens;
-    // console.log('tickLens address', tickLens.address);
-
-    // // QuoterV2
-    // const quoterContractFactory = new ContractFactory(
-    //   QuoterV2__factory.abi,
-    //   QuoterV2__factory.bytecode,
-    //   deployer
-    // );
-
-    // const quoter = (await quoterContractFactory.deploy(
-    //   factory.address,
-    //   weth.address
-    // )) as QuoterV2;
-    // console.log('quoter address', quoter.address);
-
-    // const swapRouterContractFactory = new ContractFactory(
-    //   SwapRouter__factory.abi,
-    //   SwapRouter__factory.bytecode,
-    //   deployer
-    // );
-
-    // const swapRouter = (await swapRouterContractFactory.deploy(
-    //   factory.address,
-    //   weth.address
-    // )) as SwapRouter;
-    // console.log('swapRouter address', swapRouter.address);
-
-    // NFTDescriptor
-    const nftDescriptorContractFactory = new ContractFactory(NFTDescriptor__factory.abi, NFTDescriptor__factory.bytecode, deployer);
-
-    const nftDescriptor = (await nftDescriptorContractFactory.deploy()) as NFTDescriptor;
-    console.log('nftDescriptor address', nftDescriptor.address);
-
-    // NonfungibleTokenPositionDescriptor
-    const nftTokenPositionDescriptorContractFactory = await ethers.getContractFactoryFromArtifact(blablaArtifact, {
-      signer: deployer,
-      libraries: {
-        NFTDescriptor: nftDescriptor.address,
-      },
-    });
-
-    console.log('passed nftTokenPositionDescriptorContractFactory');
-
-    const nftTokenPositionDescriptor = (await nftTokenPositionDescriptorContractFactory.deploy(
-      weth.address,
-      '0x4554480000000000000000000000000000000000000000000000000000000000' // WETH as bytes32
-    )) as NonfungibleTokenPositionDescriptor;
-    console.log('nftTokenPositionDescriptor address', nftTokenPositionDescriptor.address);
 
     const positionManagerContractFactory = new ContractFactory(
       NonfungiblePositionManager__factory.abi,
@@ -124,11 +46,9 @@ contract('StaticOracle', () => {
 
     positionManager = (await positionManagerContractFactory.deploy(
       factory.address,
-      weth.address,
-      nftTokenPositionDescriptor.address
+      wallet.generateRandomAddress(),
+      wallet.generateRandomAddress()
     )) as NonfungiblePositionManager;
-    console.log('positionManager address', positionManager.address);
-    // Set owner
   }
 
   before(async () => {
@@ -139,12 +59,19 @@ contract('StaticOracle', () => {
     const staticOracleFactory = (await ethers.getContractFactory(
       'solidity/contracts/mocks/StaticOracle.sol:StaticOracleMock'
     )) as StaticOracleMock__factory;
+
     staticOracle = await staticOracleFactory.deploy(factory.address, 60);
 
     const tokenFactory = (await ethers.getContractFactory('solidity/contracts/mocks/ERC20.sol:ERC20Mock')) as ERC20Mock__factory;
 
     tokenA = await tokenFactory.deploy('TokenA', 'T1');
     tokenB = await tokenFactory.deploy('TokenB', 'T2');
+
+    await tokenA.mint(user.address, constants.MaxUint256);
+    await tokenB.mint(user.address, constants.MaxUint256);
+
+    await tokenA.connect(user).approve(positionManager.address, constants.MaxUint256);
+    await tokenB.connect(user).approve(positionManager.address, constants.MaxUint256);
 
     snapshotId = await evm.snapshot.take();
   });
@@ -244,7 +171,7 @@ contract('StaticOracle', () => {
             ],
           });
         });
-        then.skip('queries the correct pools', async () => {
+        then('queries the correct pools', async () => {
           const [, quotedPools] = await staticOracle.callStatic.quoteAllAvailablePoolsWithTimePeriod(
             utils.parseEther('1'),
             tokenA.address,
@@ -296,8 +223,9 @@ contract('StaticOracle', () => {
       });
     });
     when('quoting fee tiers that do have pools that support period', () => {
+      let pools: { [fees: number]: string } = {};
       given(async () => {
-        await createPoolsWithSupport({
+        pools = await createPoolsWithSupport({
           tokenA: tokenA.address,
           tokenB: tokenB.address,
           feesAndSupportingPeriod: [
@@ -312,7 +240,7 @@ contract('StaticOracle', () => {
           ],
         });
       });
-      then.skip('correct pools get queried', async () => {
+      then('correct pools get queried', async () => {
         const [, quotedPools] = await staticOracle.callStatic.quoteSpecificFeeTiersWithTimePeriod(
           utils.parseEther('1'),
           tokenA.address,
@@ -320,7 +248,7 @@ contract('StaticOracle', () => {
           [FeeAmount.LOW, FeeAmount.MEDIUM],
           PERIOD
         );
-        expect(quotedPools).to.eql([FeeAmount.LOW, FeeAmount.MEDIUM]);
+        expect(quotedPools).to.eql([pools[FeeAmount.LOW], pools[FeeAmount.MEDIUM]]);
       });
     });
   });
@@ -357,11 +285,24 @@ contract('StaticOracle', () => {
   }
 
   async function createPool({ tokenA, tokenB, fee }: { tokenA: string; tokenB: string; fee: FeeAmount }): Promise<string> {
-    console.log('b4 createAndInitializePoolIfNecessary', tokenA < tokenB);
     const token0 = tokenA < tokenB ? tokenA : tokenB;
     const token1 = tokenA < tokenB ? tokenB : tokenA;
-    await positionManager.createAndInitializePoolIfNecessary(token0, tokenA, fee, encodePriceSqrt(utils.parseEther(`1`), utils.parseEther(`1`)));
-    console.log('created at least one');
-    return getCreate2Address(factory.address, [token0, tokenA], fee, UniswapV3Pool__bytecode);
+    await positionManager
+      .connect(user)
+      .createAndInitializePoolIfNecessary(token0, token1, fee, encodePriceSqrt(utils.parseEther(`1`), utils.parseEther(`1`)));
+    await positionManager.connect(user).mint({
+      token0,
+      token1,
+      fee,
+      tickLower: getMinTick(TICK_SPACINGS[fee]),
+      tickUpper: getMaxTick(TICK_SPACINGS[fee]),
+      amount0Desired: utils.parseEther('1'),
+      amount1Desired: utils.parseEther('1'),
+      amount0Min: 0,
+      amount1Min: 0,
+      recipient: user.address,
+      deadline: moment().add('10', 'minutes').unix(),
+    });
+    return getCreate2Address(factory.address, [token0, token1], fee, UniswapV3Pool__bytecode);
   }
 });

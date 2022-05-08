@@ -6,7 +6,6 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol';
 import '@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol';
 import '../interfaces/IStaticOracle.sol';
-import 'hardhat/console.sol';
 
 /// @title Uniswap V3 Static Oracle
 /// @notice Oracle contract for price quoting against Uniswap V3 pools
@@ -52,10 +51,7 @@ contract StaticOracle is IStaticOracle {
     uint32 period
   ) external view override returns (uint256 quoteAmount, address[] memory queriedPools) {
     queriedPools = _getPoolsForTiers(baseToken, quoteToken, feeTiers);
-    console.log('queried pools', queriedPools.length);
-    console.log('fee tiers', feeTiers.length);
     require(queriedPools.length == feeTiers.length, 'Given tier does not have pool');
-    console.log('post require');
     quoteAmount = _quote(baseAmount, baseToken, quoteToken, queriedPools, period);
   }
 
@@ -121,17 +117,13 @@ contract StaticOracle is IStaticOracle {
     uint32 period
   ) internal view returns (uint256 quoteAmount) {
     require(pools.length > 0, 'No defined pools');
-    console.log('post defined pools req');
     OracleLibrary.WeightedTickData[] memory tickData = new OracleLibrary.WeightedTickData[](pools.length);
     for (uint256 i; i < pools.length; i++) {
-      console.log('consulting pool', i);
       (tickData[i].tick, tickData[i].weight) = period > 0
         ? OracleLibrary.consult(pools[i], period)
         : OracleLibrary.getBlockStartingTickAndLiquidity(pools[i]);
     }
-    console.log('get weighted arithmetic', tickData.length);
     int24 weightedTick = tickData.length == 1 ? tickData[0].tick : OracleLibrary.getWeightedArithmeticMeanTick(tickData);
-    console.log('get quote at tick');
     return OracleLibrary.getQuoteAtTick(weightedTick, baseAmount, baseToken, quoteToken);
   }
 
