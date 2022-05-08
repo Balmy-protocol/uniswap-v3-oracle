@@ -54,6 +54,15 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      {
+        version: '0.4.18',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
   },
   gasReporter: {
@@ -73,8 +82,12 @@ const config: HardhatUserConfig = {
     outDir: 'typechained',
     target: 'ethers-v5',
     externalArtifacts: [
-      'node_modules/@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json',
       'node_modules/@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json',
+      'node_modules/@uniswap/v3-periphery/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json',
+      'node_modules/@uniswap/v3-periphery/artifacts/contracts/lens/TickLens.sol/TickLens.json',
+      'node_modules/@uniswap/v3-periphery/artifacts/contracts/libraries/NFTDescriptor.sol/NFTDescriptor.json',
+      'node_modules/@uniswap/v3-periphery/artifacts/contracts/NonfungibleTokenPositionDescriptor.sol/NonfungibleTokenPositionDescriptor.json',
+      'node_modules/@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json',
     ],
   },
   paths: {
