@@ -37,6 +37,7 @@ jobs:
       - name: Run gas tests
         run: yarn test:gas
         env:
+          TS_NODE_SKIP_IGNORE: true
           NODE_URI_ETHEREUM: https://eth-mainnet.alchemyapi.io/v2/${{ secrets.ALCHEMYKEY }}
 
       - name: Run eth gas reporter
