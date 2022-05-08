@@ -28,7 +28,7 @@ contract('StaticOracle @skip-on-coverage', () => {
   let supportedPools: Map<string, string>;
 
   const CARDINALITY_PER_MINUTE = 10;
-  const BASE_KNOWN_FEE_TIERS = [300, 5_000, 10_000];
+  const BASE_KNOWN_FEE_TIERS = [500, 3_000, 10_000];
   const TOKEN_A = wallet.generateRandomAddress();
   const TOKEN_B = wallet.generateRandomAddress();
 
