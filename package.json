@@ -58,9 +58,9 @@
     "postpublish": "pinst --enable",
     "release": "standard-version",
     "test": "yarn compile:test && cross-env TEST=true mocha",
-    "test:all": "yarn test './test/e2e/**/*.spec.ts' && cross-env TEST=true mocha 'test/unit/**/*.spec.ts'",
-    "test:e2e": "yarn test './test/e2e/**/*.spec.ts'",
+    "test:all": "yarn test './test/integration/**/*.spec.ts' && cross-env TEST=true mocha 'test/unit/**/*.spec.ts'",
     "test:gas": "cross-env REPORT_GAS=1 npx hardhat test",
+    "test:integration": "yarn test './test/integration/**/*.spec.ts'",
     "test:unit": "yarn test 'test/unit/**/*.spec.ts'"
   },
   "lint-staged": {
@@ -74,7 +74,7 @@
     "eth-gas-reporter/colors": "1.4.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "4.6.0",
+    "@openzeppelin/contracts": "3.4.0",
     "@uniswap/v3-core": "1.0.1",
     "@uniswap/v3-periphery": "1.4.1"
   },
@@ -90,11 +90,14 @@
     "@nomiclabs/hardhat-waffle": "2.0.3",
     "@typechain/ethers-v5": "10.0.0",
     "@typechain/hardhat": "6.0.0",
+    "@types/axios": "^0.14.0",
     "@types/chai": "4.3.1",
     "@types/chai-as-promised": "7.1.5",
     "@types/lodash": "4.14.182",
     "@types/mocha": "9.1.1",
     "@types/node": "17.0.31",
+    "axios": "^0.27.2",
+    "bignumber.js": "9.0.2",
     "chai": "4.3.6",
     "chai-as-promised": "7.1.1",
     "cross-env": "7.0.3",

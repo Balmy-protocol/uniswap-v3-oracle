@@ -18,7 +18,7 @@ import moment from 'moment';
 
 chai.use(smock.matchers);
 
-contract('StaticOracle', () => {
+contract('StaticOracle @skip-on-coverage', () => {
   let snapshotId: string;
   let staticOracle: StaticOracleMock;
   let staticOracleFactory: StaticOracleMock__factory;
