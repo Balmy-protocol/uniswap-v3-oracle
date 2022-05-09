@@ -31,9 +31,6 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
-      - name: Compile eth-sdk
-        run: yarn eth-sdk
-
       - name: Run gas tests
         run: yarn test:gas
         env:

@@ -95,9 +95,6 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
-      - name: Compile eth-sdk
-        run: yarn eth-sdk
-
       - name: Run integration tests
         run: yarn test:integration
         env:
