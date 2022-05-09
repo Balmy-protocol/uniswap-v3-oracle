@@ -36,6 +36,9 @@ jobs:
         env:
           TS_NODE_SKIP_IGNORE: true
           NODE_URI_ETHEREUM: https://eth-mainnet.alchemyapi.io/v2/${{ secrets.ALCHEMYKEY }}
+          NODE_URI_OPTIMISM: https://opt-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMYKEY }}
+          NODE_URI_ARBITRUM: https://arb-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMYKEY }}
+          NODE_URI_POLYGON: https://polygon-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMYKEY }}
 
       - name: Run eth gas reporter
         run: npx codechecks

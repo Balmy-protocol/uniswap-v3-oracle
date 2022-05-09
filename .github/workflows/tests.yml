@@ -79,14 +79,6 @@ jobs:
           path: "**/node_modules"
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Cache hardhat network fork
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-hardhat-network-fork
-        with:
-          path: cache/hardhat-network-fork
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('test/integration/fork-block-numbers.ts') }}
-
       - name: Install node
         uses: actions/setup-node@v1
         with:
@@ -100,3 +92,6 @@ jobs:
         env:
           TS_NODE_SKIP_IGNORE: true
           NODE_URI_ETHEREUM: https://eth-mainnet.alchemyapi.io/v2/${{ secrets.ALCHEMYKEY }}
+          NODE_URI_OPTIMISM: https://opt-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMYKEY }}
+          NODE_URI_ARBITRUM: https://arb-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMYKEY }}
+          NODE_URI_POLYGON: https://polygon-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMYKEY }}
