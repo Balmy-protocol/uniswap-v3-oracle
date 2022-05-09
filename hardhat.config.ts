@@ -72,10 +72,7 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: 'typechained',
     target: 'ethers-v5',
-    externalArtifacts: [
-      'node_modules/@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json',
-      'node_modules/@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json',
-    ],
+    externalArtifacts: ['node_modules/@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'],
   },
   paths: {
     sources: './solidity',

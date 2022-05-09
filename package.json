@@ -59,6 +59,7 @@
     "release": "standard-version",
     "test": "yarn compile:test && cross-env TEST=true mocha",
     "test:all": "yarn test './test/integration/**/*.spec.ts' && cross-env TEST=true mocha 'test/unit/**/*.spec.ts'",
+    "test:e2e": "yarn test './test/e2e/**/*.spec.ts'",
     "test:gas": "cross-env REPORT_GAS=1 npx hardhat test",
     "test:integration": "yarn test './test/integration/**/*.spec.ts'",
     "test:unit": "yarn test 'test/unit/**/*.spec.ts'"

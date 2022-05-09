@@ -9,7 +9,7 @@ export const setTestChainId = (chainId: number): void => {
 };
 
 export const getChainId = async (hre: HardhatRuntimeEnvironment): Promise<number> => {
-  if (!!process.env.TEST) {
+  if (!!process.env.TEST || !!process.env.REPORT_GAS) {
     if (!testChainId) throw new Error('Should specify chain id of test');
     return testChainId;
   }
@@ -26,7 +26,7 @@ export const getRealChainIdOfFork = (hre: HardhatRuntimeEnvironment): number => 
 };
 
 export const shouldVerifyContract = async (deploy: DeployResult): Promise<boolean> => {
-  if (process.env.FORK || process.env.TEST) return false;
+  if (process.env.REPORT_GAS || process.env.FORK || process.env.TEST) return false;
   if (!deploy.newlyDeployed) return false;
   const txReceipt = await ethers.provider.getTransaction(deploy.receipt!.transactionHash);
   await txReceipt.wait(10);
