@@ -22,9 +22,9 @@ const networks: NetworksUserConfig =
             url: env.getNodeUrl('ethereum'),
           },
         },
-        kovan: {
-          url: env.getNodeUrl('kovan'),
-          accounts: env.getAccounts('kovan'),
+        ['ethereum-kovan']: {
+          url: env.getNodeUrl('ethereum-kovan'),
+          accounts: env.getAccounts('ethereum-kovan'),
         },
         ethereum: {
           url: env.getNodeUrl('ethereum'),
@@ -67,7 +67,12 @@ const config: HardhatUserConfig = {
     eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat'),
   },
   etherscan: {
-    apiKey: env.getEtherscanAPIKeys(['ethereum']),
+    apiKey: env.getEtherscanAPIKeys(['ethereum', 'ethereum-kovan']),
+  },
+  external: {
+    deployments: {
+      ['ethereum-kovan']: ['node_modules/@mean-finance/deterministic-factory/deployments/ethereum-kovan'],
+    },
   },
   typechain: {
     outDir: 'typechained',
