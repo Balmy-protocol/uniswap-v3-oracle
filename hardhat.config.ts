@@ -6,7 +6,7 @@ import '@typechain/hardhat';
 import '@typechain/hardhat/dist/type-extensions';
 import { removeConsoleLog } from 'hardhat-preprocessor';
 import 'hardhat-gas-reporter';
-import 'hardhat-deploy';
+import '@0xged/hardhat-deploy';
 import 'solidity-coverage';
 import { HardhatUserConfig, MultiSolcUserConfig, NetworksUserConfig } from 'hardhat/types';
 import * as env from './utils/env';

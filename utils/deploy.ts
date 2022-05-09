@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat';
-import { DeployResult } from 'hardhat-deploy/dist/types';
+import { DeployResult } from '@0xged/hardhat-deploy/dist/types';
 import { HardhatNetworkUserConfig, HardhatRuntimeEnvironment } from 'hardhat/types';
 
 let testChainId: number;
