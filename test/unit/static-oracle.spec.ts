@@ -18,7 +18,7 @@ import moment from 'moment';
 
 chai.use(smock.matchers);
 
-contract('StaticOracle', () => {
+contract('StaticOracle @skip-on-coverage', () => {
   let snapshotId: string;
   let staticOracle: StaticOracleMock;
   let staticOracleFactory: StaticOracleMock__factory;
@@ -28,7 +28,7 @@ contract('StaticOracle', () => {
   let supportedPools: Map<string, string>;
 
   const CARDINALITY_PER_MINUTE = 10;
-  const BASE_KNOWN_FEE_TIERS = [300, 5_000, 10_000];
+  const BASE_KNOWN_FEE_TIERS = [500, 3_000, 10_000];
   const TOKEN_A = wallet.generateRandomAddress();
   const TOKEN_B = wallet.generateRandomAddress();
 
@@ -45,6 +45,10 @@ contract('StaticOracle', () => {
 
   beforeEach('Deploy and configure', async () => {
     supportedPools = new Map<string, string>();
+    uniswapV3Pool.observations.reset();
+    uniswapV3Pool.slot0.reset();
+    uniswapV3Pool2.observations.reset();
+    uniswapV3Pool2.slot0.reset();
     uniswapV3Factory.feeAmountTickSpacing.reset();
     uniswapV3Factory.getPool.reset();
     uniswapV3Factory.getPool.returns(({ tokenA, tokenB, fee }: { tokenA: string; tokenB: string; fee: number }) => {
@@ -84,11 +88,6 @@ contract('StaticOracle', () => {
       });
     });
   });
-
-  // All quotes will be tested in integration tests.
-  // describe('quoteAllAvailablePoolsWithTimePeriod', () => { });
-  // describe('quoteSpecificFeeTiersWithTimePeriod', () => { });
-  // describe('quoteSpecificPoolsWithTimePeriod', () => { });
 
   describe('prepareAllAvailablePoolsWithTimePeriod', () => {
     let pools: FakeContract<IUniswapV3Pool>[];

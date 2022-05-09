@@ -33,7 +33,37 @@ jobs:
 
       - name: Run unit tests
         run: yarn test:unit
+        env:
+          TS_NODE_SKIP_IGNORE: true
   e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out github repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+
+      - name: Run e2e tests
+        run: yarn test:e2e
+        env:
+          TS_NODE_SKIP_IGNORE: true
+  integration:
     runs-on: ubuntu-latest
     steps:
       - name: Check out github repository
@@ -55,7 +85,7 @@ jobs:
           cache-name: cache-hardhat-network-fork
         with:
           path: cache/hardhat-network-fork
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('test/e2e/fork-block-numbers.ts') }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('test/integration/fork-block-numbers.ts') }}
 
       - name: Install node
         uses: actions/setup-node@v1
@@ -68,7 +98,8 @@ jobs:
       - name: Compile eth-sdk
         run: yarn eth-sdk
 
-      - name: Run e2e tests
-        run: yarn test:e2e
+      - name: Run integration tests
+        run: yarn test:integration
         env:
+          TS_NODE_SKIP_IGNORE: true
           NODE_URI_ETHEREUM: https://eth-mainnet.alchemyapi.io/v2/${{ secrets.ALCHEMYKEY }}

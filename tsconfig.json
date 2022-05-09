@@ -14,7 +14,7 @@
       "@typechained": ["typechained/index"],
       "@utils": ["test/utils/index"],
       "@utils/*": ["test/utils/*"],
-      "@e2e/*": ["test/e2e/*"],
+      "@integration/*": ["test/integration/*"],
       "@unit/*": ["test/unit/*"],
       "@eth-sdk-types": ["node_modules/.dethcrypto/eth-sdk-client/cjs/types"]
     }

@@ -1,35 +1,78 @@
-import { getMainnetSdk } from '@dethcrypto/eth-sdk-client';
-import { Dai } from '@eth-sdk-types';
-import { TransactionResponse } from '@ethersproject/abstract-provider';
-import { JsonRpcSigner } from '@ethersproject/providers';
-import { BigNumber, utils } from 'ethers';
+import { bytecode as UniswapV3Pool__bytecode } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json';
+import { bytecode as UniswapV3Factory__bytecode } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json';
 import { ethers } from 'hardhat';
 import { evm, wallet } from '@utils';
 import { contract, given, then, when } from '@utils/bdd';
 import { expect } from 'chai';
-import { getNodeUrl } from 'utils/env';
-import forkBlockNumber from './fork-block-numbers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import {
+  ERC20Mock,
+  ERC20Mock__factory,
+  NonfungiblePositionManager,
+  NonfungiblePositionManager__factory,
+  StaticOracle,
+  IUniswapV3Factory,
+  IUniswapV3Factory__factory,
+  StaticOracleMock__factory,
+} from '@typechained';
+import moment from 'moment';
+import { FeeAmount, encodePriceSqrt, getCreate2Address, getMinTick, TICK_SPACINGS, getMaxTick } from '@utils/uniswap';
+import { constants, ContractFactory, utils } from 'ethers';
 
-const daiWhaleAddress = '0x16463c0fdb6ba9618909f5b120ea1581618c1b9e';
-
-contract('StaticOracle @skip-on-coverage', () => {
-  let stranger: SignerWithAddress;
-  let daiWhale: JsonRpcSigner;
-  let dai: Dai;
+contract('StaticOracle', () => {
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
+  let staticOracle: StaticOracle;
   let snapshotId: string;
 
+  let tokenA: ERC20Mock;
+  let tokenB: ERC20Mock;
+
+  let positionManager: NonfungiblePositionManager;
+  let factory: IUniswapV3Factory;
+
+  const PERIOD = moment.duration('3', 'minutes').as('seconds');
+
+  async function deployUniV3(): Promise<void> {
+    const uniswapFactoryContractFactory = new ContractFactory(IUniswapV3Factory__factory.abi, UniswapV3Factory__bytecode, deployer);
+
+    factory = (await uniswapFactoryContractFactory.deploy()) as IUniswapV3Factory;
+
+    const positionManagerContractFactory = new ContractFactory(
+      NonfungiblePositionManager__factory.abi,
+      NonfungiblePositionManager__factory.bytecode,
+      deployer
+    );
+
+    positionManager = (await positionManagerContractFactory.deploy(
+      factory.address,
+      wallet.generateRandomAddress(),
+      wallet.generateRandomAddress()
+    )) as NonfungiblePositionManager;
+  }
+
   before(async () => {
-    [stranger] = await ethers.getSigners();
-    await evm.reset({
-      jsonRpcUrl: getNodeUrl('ethereum'),
-      blockNumber: forkBlockNumber.dai,
-    });
+    [deployer, user] = await ethers.getSigners();
 
-    const sdk = getMainnetSdk(stranger);
-    dai = sdk.dai;
+    await deployUniV3();
 
-    daiWhale = await wallet.impersonate(daiWhaleAddress);
+    const staticOracleFactory = (await ethers.getContractFactory(
+      'solidity/contracts/mocks/StaticOracle.sol:StaticOracleMock'
+    )) as StaticOracleMock__factory;
+
+    staticOracle = await staticOracleFactory.deploy(factory.address, 60);
+
+    const tokenFactory = (await ethers.getContractFactory('solidity/contracts/mocks/ERC20.sol:ERC20Mock')) as ERC20Mock__factory;
+
+    tokenA = await tokenFactory.deploy('TokenA', 'T1');
+    tokenB = await tokenFactory.deploy('TokenB', 'T2');
+
+    await tokenA.mint(user.address, constants.MaxUint256);
+    await tokenB.mint(user.address, constants.MaxUint256);
+
+    await tokenA.connect(user).approve(positionManager.address, constants.MaxUint256);
+    await tokenB.connect(user).approve(positionManager.address, constants.MaxUint256);
+
     snapshotId = await evm.snapshot.take();
   });
 
@@ -37,41 +80,229 @@ contract('StaticOracle @skip-on-coverage', () => {
     await evm.snapshot.revert(snapshotId);
   });
 
-  describe('transfer', () => {
-    when('user doesnt have funds', () => {
-      let transferTx: Promise<TransactionResponse>;
-
-      given(async () => {
-        // There is no need to connect the dai contract to stranger
-        // since its the default signer.
-        // That is just for template examples.
-        transferTx = dai.connect(stranger).transfer(wallet.generateRandomAddress(), utils.parseEther('1'));
+  describe('quoteAllAvailablePoolsWithTimePeriod', () => {
+    let pools: { [fees: number]: string } = {};
+    when('there is a single pool', () => {
+      context('and it doesnt have an observation oldest than the period', () => {
+        given(async () => {
+          pools = await createPoolsWithSupport({
+            tokenA: tokenA.address,
+            tokenB: tokenB.address,
+            feesAndSupportingPeriod: [
+              {
+                fee: FeeAmount.MEDIUM,
+                supportPeriod: false,
+              },
+            ],
+          });
+        });
+        then(`tx gets reverted with 'No defined pools' error`, async () => {
+          await expect(
+            staticOracle.quoteAllAvailablePoolsWithTimePeriod(utils.parseEther('1'), tokenA.address, tokenB.address, PERIOD)
+          ).to.be.revertedWith('No defined pools');
+        });
       });
-
-      then('tx is reverted with reason', async () => {
-        await expect(transferTx).to.be.revertedWith('Dai/insufficient-balance');
+      context('and it has an observation oldest than the period', () => {
+        given(async () => {
+          pools = await createPoolsWithSupport({
+            tokenA: tokenA.address,
+            tokenB: tokenB.address,
+            feesAndSupportingPeriod: [
+              {
+                fee: FeeAmount.MEDIUM,
+                supportPeriod: true,
+              },
+            ],
+          });
+        });
+        then('queries the pool', async () => {
+          const [, quotedPools] = await staticOracle.callStatic.quoteAllAvailablePoolsWithTimePeriod(
+            utils.parseEther('1'),
+            tokenA.address,
+            tokenB.address,
+            PERIOD
+          );
+          expect(quotedPools).to.eql([pools[FeeAmount.MEDIUM]]);
+        });
       });
     });
-
-    when('user has funds', () => {
-      let initialSenderBalance: BigNumber;
-      let initialReceiverBalance: BigNumber;
-      const amountToTransfer = utils.parseEther('1');
-
-      given(async () => {
-        // We use our dai whale's impersonated signer
-        initialSenderBalance = await dai.balanceOf(daiWhale._address);
-        initialReceiverBalance = await dai.balanceOf(stranger.address);
-        await dai.connect(daiWhale).transfer(stranger.address, amountToTransfer);
+    when('there are multiple pools', () => {
+      context('and none have an observation oldest than the period', () => {
+        given(async () => {
+          pools = await createPoolsWithSupport({
+            tokenA: tokenA.address,
+            tokenB: tokenB.address,
+            feesAndSupportingPeriod: [
+              {
+                fee: FeeAmount.LOW,
+                supportPeriod: false,
+              },
+              {
+                fee: FeeAmount.MEDIUM,
+                supportPeriod: false,
+              },
+            ],
+          });
+        });
+        then(`tx gets reverted with 'No defined pools' error`, async () => {
+          await expect(
+            staticOracle.quoteAllAvailablePoolsWithTimePeriod(utils.parseEther('1'), tokenA.address, tokenB.address, PERIOD)
+          ).to.be.revertedWith('No defined pools');
+        });
       });
-
-      then('funds are taken from sender', async () => {
-        expect(await dai.balanceOf(daiWhale._address)).to.be.equal(initialSenderBalance.sub(amountToTransfer));
-      });
-
-      then('funds are given to receiver', async () => {
-        expect(await dai.balanceOf(stranger.address)).to.be.equal(initialReceiverBalance.add(amountToTransfer));
+      context('and some have an observation oldest than the period', () => {
+        given(async () => {
+          pools = await createPoolsWithSupport({
+            tokenA: tokenA.address,
+            tokenB: tokenB.address,
+            feesAndSupportingPeriod: [
+              {
+                fee: FeeAmount.LOW,
+                supportPeriod: true,
+              },
+              {
+                fee: FeeAmount.MEDIUM,
+                supportPeriod: false,
+              },
+              {
+                fee: FeeAmount.HIGH,
+                supportPeriod: true,
+              },
+            ],
+          });
+        });
+        then('queries the correct pools', async () => {
+          const [, quotedPools] = await staticOracle.callStatic.quoteAllAvailablePoolsWithTimePeriod(
+            utils.parseEther('1'),
+            tokenA.address,
+            tokenB.address,
+            PERIOD
+          );
+          expect(quotedPools).to.eql([pools[FeeAmount.LOW], pools[FeeAmount.HIGH]]);
+        });
       });
     });
   });
+
+  describe('quoteSpecificFeeTiersWithTimePeriod', () => {
+    when('quoting fee tiers that do not have pools', () => {
+      then(`tx gets reverted with 'Given tier does not have pool' error`, async () => {
+        await expect(
+          staticOracle.quoteSpecificFeeTiersWithTimePeriod(utils.parseEther('1'), tokenA.address, tokenB.address, [FeeAmount.LOW], PERIOD)
+        ).to.be.rejectedWith('Given tier does not have pool');
+      });
+    });
+    when('quoting fee tiers that have pools but do not support period', () => {
+      given(async () => {
+        await createPoolsWithSupport({
+          tokenA: tokenA.address,
+          tokenB: tokenB.address,
+          feesAndSupportingPeriod: [
+            {
+              fee: FeeAmount.LOW,
+              supportPeriod: false,
+            },
+            {
+              fee: FeeAmount.MEDIUM,
+              supportPeriod: true,
+            },
+          ],
+        });
+      });
+      // FIX: Does that error message make sense in this case?
+      then(`tx gets reverted with 'Given tier does not have pool' error`, async () => {
+        await expect(
+          staticOracle.quoteSpecificFeeTiersWithTimePeriod(
+            utils.parseEther('1'),
+            tokenA.address,
+            tokenB.address,
+            [FeeAmount.LOW, FeeAmount.HIGH],
+            PERIOD
+          )
+        ).to.be.rejectedWith('Given tier does not have pool');
+      });
+    });
+    when('quoting fee tiers that do have pools that support period', () => {
+      let pools: { [fees: number]: string } = {};
+      given(async () => {
+        pools = await createPoolsWithSupport({
+          tokenA: tokenA.address,
+          tokenB: tokenB.address,
+          feesAndSupportingPeriod: [
+            {
+              fee: FeeAmount.LOW,
+              supportPeriod: true,
+            },
+            {
+              fee: FeeAmount.MEDIUM,
+              supportPeriod: true,
+            },
+          ],
+        });
+      });
+      then('correct pools get queried', async () => {
+        const [, quotedPools] = await staticOracle.callStatic.quoteSpecificFeeTiersWithTimePeriod(
+          utils.parseEther('1'),
+          tokenA.address,
+          tokenB.address,
+          [FeeAmount.LOW, FeeAmount.MEDIUM],
+          PERIOD
+        );
+        expect(quotedPools).to.eql([pools[FeeAmount.LOW], pools[FeeAmount.MEDIUM]]);
+      });
+    });
+  });
+
+  async function createPoolsWithSupport({
+    tokenA,
+    tokenB,
+    feesAndSupportingPeriod,
+  }: {
+    tokenA: string;
+    tokenB: string;
+    feesAndSupportingPeriod: { fee: FeeAmount; supportPeriod: boolean }[];
+  }): Promise<{ [fee: number]: string }> {
+    let feesToPools: { [fee: number]: string } = {};
+    const supportedFees = feesAndSupportingPeriod.filter((feesAndSupportingPeriod) => feesAndSupportingPeriod.supportPeriod);
+    const notSupportedFees = feesAndSupportingPeriod.filter((feesAndSupportingPeriod) => !feesAndSupportingPeriod.supportPeriod);
+
+    for (let i = 0; i < supportedFees.length; i++) {
+      feesToPools[supportedFees[i].fee] = await createPool({
+        tokenA,
+        tokenB,
+        fee: supportedFees[i].fee,
+      });
+    }
+    await evm.advanceTimeAndBlock(PERIOD);
+    for (let i = 0; i < notSupportedFees.length; i++) {
+      feesToPools[notSupportedFees[i].fee] = await createPool({
+        tokenA,
+        tokenB,
+        fee: notSupportedFees[i].fee,
+      });
+    }
+    return feesToPools;
+  }
+
+  async function createPool({ tokenA, tokenB, fee }: { tokenA: string; tokenB: string; fee: FeeAmount }): Promise<string> {
+    const token0 = tokenA < tokenB ? tokenA : tokenB;
+    const token1 = tokenA < tokenB ? tokenB : tokenA;
+    await positionManager
+      .connect(user)
+      .createAndInitializePoolIfNecessary(token0, token1, fee, encodePriceSqrt(utils.parseEther(`1`), utils.parseEther(`1`)));
+    await positionManager.connect(user).mint({
+      token0,
+      token1,
+      fee,
+      tickLower: getMinTick(TICK_SPACINGS[fee]),
+      tickUpper: getMaxTick(TICK_SPACINGS[fee]),
+      amount0Desired: utils.parseEther('1'),
+      amount1Desired: utils.parseEther('1'),
+      amount0Min: 0,
+      amount1Min: 0,
+      recipient: user.address,
+      deadline: moment().add('10', 'minutes').unix(),
+    });
+    return getCreate2Address(factory.address, [token0, token1], fee, UniswapV3Pool__bytecode);
+  }
 });

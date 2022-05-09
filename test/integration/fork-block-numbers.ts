@@ -1,5 +1,5 @@
 const forkBlockNumber: { [name: string]: number } = {
-  dai: 12103332,
+  ['ethereum-mainnet']: 14719370,
 };
 
 export default forkBlockNumber;

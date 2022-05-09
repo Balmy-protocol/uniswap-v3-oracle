@@ -21,8 +21,8 @@ contract StaticOracle is IStaticOracle {
     CARDINALITY_PER_MINUTE = _CARDINALITY_PER_MINUTE;
 
     // Assign default fee tiers
-    _knownFeeTiers.push(300);
-    _knownFeeTiers.push(5000);
+    _knownFeeTiers.push(500);
+    _knownFeeTiers.push(3000);
     _knownFeeTiers.push(10000);
   }
 
@@ -117,14 +117,12 @@ contract StaticOracle is IStaticOracle {
     uint32 period
   ) internal view returns (uint256 quoteAmount) {
     require(pools.length > 0, 'No defined pools');
-
     OracleLibrary.WeightedTickData[] memory tickData = new OracleLibrary.WeightedTickData[](pools.length);
     for (uint256 i; i < pools.length; i++) {
       (tickData[i].tick, tickData[i].weight) = period > 0
         ? OracleLibrary.consult(pools[i], period)
         : OracleLibrary.getBlockStartingTickAndLiquidity(pools[i]);
     }
-
     int24 weightedTick = tickData.length == 1 ? tickData[0].tick : OracleLibrary.getWeightedArithmeticMeanTick(tickData);
     return OracleLibrary.getQuoteAtTick(weightedTick, baseAmount, baseToken, quoteToken);
   }
