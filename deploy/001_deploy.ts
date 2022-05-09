@@ -4,7 +4,7 @@ import { deploy, getCreationCode } from '@utils/contracts';
 import { ethers } from 'hardhat';
 import { utils } from 'ethers';
 import { StaticOracle__factory } from '@typechained';
-import { DeterministicFactory } from '@mean-finance/deterministic-factory/typechained';
+import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory/typechained';
 import { DeployFunction } from '@0xged/hardhat-deploy/dist/types';
 
 const UNISWAP_V3_FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984';
@@ -28,7 +28,10 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
 
   const chainId = await getChainId(hre);
 
-  const deterministicFactory = await ethers.getContract<DeterministicFactory>('DeterministicFactory');
+  const deterministicFactory = await ethers.getContractAt<DeterministicFactory>(
+    DeterministicFactory__factory.abi,
+    '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'
+  );
 
   const SALT = utils.formatBytes32String('ffff-v2.1.2');
 
@@ -42,18 +45,13 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
     },
   });
 
-  const receipt = await hre.deployments.execute(
-    'DeterministicFactory',
-    {
-      from: deployer,
-      log: true,
-      waitConfirmations: 10,
-    },
-    'deploy',
+  const deploymentTx = await deterministicFactory.deploy(
     SALT, // SALT
     creationCode,
     0 // Value
   );
+
+  const receipt = await deploymentTx.wait();
 
   const deployment = await hre.deployments.buildDeploymentSubmission({
     name: 'StaticOracle',
@@ -67,7 +65,9 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
   });
 
   await hre.deployments.save('StaticOracle', deployment);
+  console.log('post saving');
 };
+
 deployFunction.dependencies = [];
 deployFunction.tags = ['StaticOracle'];
 export default deployFunction;
