@@ -65,7 +65,6 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
   });
 
   await hre.deployments.save('StaticOracle', deployment);
-  console.log('post saving');
 };
 
 deployFunction.dependencies = [];

@@ -8,7 +8,7 @@ import { StaticOracle } from '@typechained';
 import { getLastPrice, convertPriceToNumberWithDecimals } from '../utils/defillama';
 import { setTestChainId } from 'utils/deploy';
 import moment from 'moment';
-import { utils } from 'ethers';
+import { constants, utils } from 'ethers';
 import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory/typechained';
 
 const PRICE_THRESHOLD = 40;
@@ -24,24 +24,24 @@ contract('StaticOracle', () => {
     before(async () => {
       [deployer] = await ethers.getSigners();
     });
-    // testQuoteOnNetwork({
-    //   network: 'ethereum',
-    //   chainId: 1,
-    //   weth: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-    //   usdc: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    // });
-    // testQuoteOnNetwork({
-    //   network: 'optimism',
-    //   chainId: 10,
-    //   weth: '0x4200000000000000000000000000000000000006',
-    //   usdc: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
-    // });
-    // testQuoteOnNetwork({
-    //   network: 'arbitrum',
-    //   chainId: 42161,
-    //   weth: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-    //   usdc: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
-    // });
+    testQuoteOnNetwork({
+      network: 'ethereum',
+      chainId: 1,
+      weth: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+      usdc: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    });
+    testQuoteOnNetwork({
+      network: 'optimism',
+      chainId: 10,
+      weth: '0x4200000000000000000000000000000000000006',
+      usdc: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
+    });
+    testQuoteOnNetwork({
+      network: 'arbitrum',
+      chainId: 42161,
+      weth: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+      usdc: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
+    });
     testQuoteOnNetwork({
       network: 'polygon',
       chainId: 137,
@@ -61,6 +61,7 @@ contract('StaticOracle', () => {
         });
         // Give deployer role to our deployer address
         const admin = await wallet.impersonate(DETERMINISTIC_FACTORY_ADMIN);
+        await wallet.setBalance({ account: admin._address, balance: constants.MaxUint256 });
         const deterministicFactory = await ethers.getContractAt<DeterministicFactory>(
           DeterministicFactory__factory.abi,
           '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'

@@ -104,13 +104,19 @@ const config: HardhatUserConfig = {
     eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat'),
   },
   etherscan: {
-    apiKey: env.getEtherscanAPIKeys(['ethereum', 'ethereum-kovan']),
-  },
-  external: {
-    deployments: {
-      // ['ethereum-kovan']: ['node_modules/@mean-finance/deterministic-factory/deployments/ethereum-kovan'],
-      polygon: ['node_modules/@mean-finance/deterministic-factory/deployments/polygon'],
-    },
+    apiKey: env.getEtherscanAPIKeys([
+      'ethereum-ropsten',
+      'ethereum-rinkeby',
+      'ethereum-kovan',
+      'ethereum-goerli',
+      'ethereum',
+      'optimism',
+      'optimism-kovan',
+      'arbitrum',
+      'arbitrum-rinkeby',
+      'polygon',
+      'polygon-mumbai',
+    ]),
   },
   typechain: {
     outDir: 'typechained',
