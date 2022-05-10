@@ -62,7 +62,41 @@ export function getEtherscanAPIKeys(networks: string[]): { [network: string]: st
     if (!networkApiKey) {
       console.warn(`No etherscan api key for ${network}`);
     } else {
-      apiKeys[network == 'ethereum' ? 'mainnet' : network] = networkApiKey;
+      switch (network) {
+        case 'ethereum-ropsten':
+          apiKeys['ropsten'] = networkApiKey;
+          break;
+        case 'ethereum-rinkeby':
+          apiKeys['rinkeby'] = networkApiKey;
+          break;
+        case 'ethereum-goerli':
+          apiKeys['goerli'] = networkApiKey;
+          break;
+        case 'ethereum-kovan':
+          apiKeys['kovan'] = networkApiKey;
+          break;
+        case 'ethereum':
+          apiKeys['mainnet'] = networkApiKey;
+          break;
+        case 'optimism':
+          apiKeys['optimisticEthereum'] = networkApiKey;
+          break;
+        case 'optimism-kovan':
+          apiKeys['optimisticKovan'] = networkApiKey;
+          break;
+        case 'arbitrum':
+          apiKeys['arbitrumOne'] = networkApiKey;
+          break;
+        case 'arbitrum-rinkeby':
+          apiKeys['arbitrumTestnet'] = networkApiKey;
+          break;
+        case 'polygon-mumbai':
+          apiKeys['polygonMumbai'] = networkApiKey;
+          break;
+        default:
+          apiKeys[network] = networkApiKey;
+          break;
+      }
     }
   });
   return apiKeys;

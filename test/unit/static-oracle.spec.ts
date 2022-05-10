@@ -12,7 +12,7 @@ import { contract, given, then, when } from '@utils/bdd';
 import { ethers } from 'hardhat';
 import { snapshot } from '@utils/evm';
 import { hexZeroPad } from 'ethers/lib/utils';
-import { wallet } from '@utils';
+import { evm, wallet } from '@utils';
 import { constants, utils } from 'ethers';
 import moment from 'moment';
 
@@ -224,14 +224,17 @@ contract('StaticOracle @skip-on-coverage', () => {
     when('period is not zero', () => {
       const PERIOD = moment.duration('2', 'minutes').as('seconds');
       context(`and all pool's observations are bigger or equal than period`, () => {
-        given(() => {
+        given(async () => {
+          // Avoid bug when not controlling execution times
+          const futureTimestamp = moment().add('1', 'hour').unix();
+          await evm.advanceToTimeAndBlock(futureTimestamp);
           setLastTradeTimeToPool({
             pool: uniswapV3Pool,
-            tradeTimestamp: moment().unix() - PERIOD * 1.5,
+            tradeTimestamp: futureTimestamp - PERIOD * 1.5,
           });
           setLastTradeTimeToPool({
             pool: uniswapV3Pool2,
-            tradeTimestamp: moment().unix() - PERIOD * 1.5,
+            tradeTimestamp: futureTimestamp - PERIOD * 1.5,
           });
         });
         then('returns all pools', async () => {
@@ -239,14 +242,17 @@ contract('StaticOracle @skip-on-coverage', () => {
         });
       });
       context(`and not all pool's observations are bigger or equal than period`, () => {
-        given(() => {
+        given(async () => {
+          // Avoid bug when not controlling execution times
+          const futureTimestamp = moment().add('1', 'hour').unix();
+          await evm.advanceToTimeAndBlock(futureTimestamp);
           setLastTradeTimeToPool({
             pool: uniswapV3Pool,
-            tradeTimestamp: moment().unix() - PERIOD * 1.5,
+            tradeTimestamp: futureTimestamp - PERIOD * 1.5,
           });
           setLastTradeTimeToPool({
             pool: uniswapV3Pool2,
-            tradeTimestamp: moment().unix() - PERIOD / 2,
+            tradeTimestamp: futureTimestamp - PERIOD / 2,
           });
         });
         then('returns only those who are', async () => {

@@ -1,5 +1,5 @@
 import { deployments, ethers } from 'hardhat';
-import { evm } from '@utils';
+import { evm, wallet } from '@utils';
 import { contract, given, then, when } from '@utils/bdd';
 import { expect } from 'chai';
 import { getNodeUrl } from 'utils/env';
@@ -8,16 +8,22 @@ import { StaticOracle } from '@typechained';
 import { getLastPrice, convertPriceToNumberWithDecimals } from '../utils/defillama';
 import { setTestChainId } from 'utils/deploy';
 import moment from 'moment';
-import { utils } from 'ethers';
+import { constants, utils } from 'ethers';
+import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory/typechained';
 
 const PRICE_THRESHOLD = 40;
+const PERIOD = moment.duration('3', 'minutes').as('seconds');
+const DETERMINISTIC_FACTORY_ADMIN = '0x1a00e1e311009e56e3b0b9ed6f86f5ce128a1c01';
+const DEPLOYER_ROLE = utils.keccak256(utils.toUtf8Bytes('DEPLOYER_ROLE'));
 
 contract('StaticOracle', () => {
+  let deployer: SignerWithAddress;
   let staticOracle: StaticOracle;
 
-  const PERIOD = moment.duration('3', 'minutes').as('seconds');
-
   describe('quote', () => {
+    before(async () => {
+      [deployer] = await ethers.getSigners();
+    });
     testQuoteOnNetwork({
       network: 'ethereum',
       chainId: 1,
@@ -48,12 +54,23 @@ contract('StaticOracle', () => {
     context(`on ${network}`, () => {
       let feedPrice: number;
       given(async () => {
+        // Set fork of network
         await setTestChainId(chainId);
         await evm.reset({
           jsonRpcUrl: getNodeUrl(network),
         });
-        await deployments.fixture(['StaticOracle'], { keepExistingDeployments: false });
+        // Give deployer role to our deployer address
+        const admin = await wallet.impersonate(DETERMINISTIC_FACTORY_ADMIN);
+        await wallet.setBalance({ account: admin._address, balance: constants.MaxUint256 });
+        const deterministicFactory = await ethers.getContractAt<DeterministicFactory>(
+          DeterministicFactory__factory.abi,
+          '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'
+        );
+        await deterministicFactory.connect(admin).grantRole(DEPLOYER_ROLE, deployer.address);
+        // Execute deployment script
+        await deployments.fixture(['StaticOracle'], { keepExistingDeployments: true });
         staticOracle = await ethers.getContract<StaticOracle>('StaticOracle');
+        // Get ETH/USD price from coingecko
         feedPrice = await getLastPrice(network, weth);
       });
       it('returns correct twap', async () => {
