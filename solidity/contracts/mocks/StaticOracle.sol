@@ -14,8 +14,12 @@ contract StaticOracleMock is StaticOracle {
     _knownFeeTiers.push(_feeTier);
   }
 
-  function prepare(address[] memory pools, uint32 period) external {
-    _prepare(pools, period);
+  function getCadinalityForTimePeriod(uint32 _period) external view returns (uint16 _cardinality) {
+    return _getCadinalityForTimePeriod(_period);
+  }
+
+  function prepare(address[] memory pools, uint16 cardinality) external {
+    _prepare(pools, cardinality);
   }
 
   function quote(

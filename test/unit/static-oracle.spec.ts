@@ -98,7 +98,7 @@ contract('StaticOracle @skip-on-coverage', () => {
       await staticOracle.prepareAllAvailablePoolsWithTimePeriod(TOKEN_A, TOKEN_B, PERIOD);
     });
     when('called', () => {
-      thenIncreasesCardinalityForPeriodForPools({
+      thenIncreasesCardinalityForPools({
         pools: () => pools,
         period: PERIOD,
       });
@@ -124,7 +124,7 @@ contract('StaticOracle @skip-on-coverage', () => {
         await staticOracle.setPoolForTiersReturn(pools.map((pool) => pool.address));
         await staticOracle.prepareSpecificFeeTiersWithTimePeriod(TOKEN_A, TOKEN_B, [300], PERIOD);
       });
-      thenIncreasesCardinalityForPeriodForPools({
+      thenIncreasesCardinalityForPools({
         pools: () => pools,
         period: PERIOD,
       });
@@ -141,16 +141,24 @@ contract('StaticOracle @skip-on-coverage', () => {
         PERIOD
       );
     });
-    thenIncreasesCardinalityForPeriodForPools({
+    thenIncreasesCardinalityForPools({
       pools: () => pools,
       period: PERIOD,
     });
   });
 
-  function thenIncreasesCardinalityForPeriodForPools({ pools, period }: { pools: () => FakeContract<IUniswapV3Pool>[]; period: number }): void {
+  function thenIncreasesCardinalityForPools({
+    pools,
+    cardinality,
+    period,
+  }: {
+    pools: () => FakeContract<IUniswapV3Pool>[];
+    cardinality?: number;
+    period?: number;
+  }): void {
     then('increases cardinality correctly for pools', () => {
       const poolsToTest = pools();
-      const cardinality = getCardinalityForPeriod(period);
+      cardinality = cardinality ?? getCardinalityForPeriod(period!);
       for (let i = 0; i < poolsToTest.length; i++) {
         expect(poolsToTest[i].increaseObservationCardinalityNext).to.have.been.calledWith(cardinality);
       }
@@ -188,6 +196,12 @@ contract('StaticOracle @skip-on-coverage', () => {
     });
   });
 
+  describe('_getCadinalityForTimePeriod', () => {
+    it('calculates cardinality for time period correctly', async () => {
+      expect(await staticOracle.getCadinalityForTimePeriod(30)).to.be.equal(getCardinalityForPeriod(30));
+    });
+  });
+
   describe('_prepare', () => {
     let pools: FakeContract<IUniswapV3Pool>[];
     const PERIOD = moment.duration('1', 'minutes').as('seconds');
@@ -198,7 +212,7 @@ contract('StaticOracle @skip-on-coverage', () => {
         PERIOD
       );
     });
-    thenIncreasesCardinalityForPeriodForPools({
+    thenIncreasesCardinalityForPools({
       pools: () => pools,
       period: PERIOD,
     });

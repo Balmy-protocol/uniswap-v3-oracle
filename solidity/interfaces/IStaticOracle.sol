@@ -103,6 +103,37 @@ interface IStaticOracle {
   /// @param period The period that will be guaranteed when quoting
   function prepareSpecificPoolsWithTimePeriod(address[] calldata pools, uint32 period) external;
 
+  /// @notice Will increase observations for all existing pools for the given pair, so they start accruing information for twap calculations
+  /// @dev Will revert if there are no pools available for the pair and period combination
+  /// @param tokenA One of the pair's tokens
+  /// @param tokenB The other of the pair's tokens
+  /// @param cardinality The cardinality that will be guaranteed when quoting
+  /// @return preparedPools The pools that were prepared
+  function prepareAllAvailablePoolsWithCardinality(
+    address tokenA,
+    address tokenB,
+    uint16 cardinality
+  ) external returns (address[] memory preparedPools);
+
+  /// @notice Will increase the pair's pools with the specified fee tiers observations, so they start accruing information for twap calculations
+  /// @dev Will revert if the pair does not have a pool for a given fee tier
+  /// @param tokenA One of the pair's tokens
+  /// @param tokenB The other of the pair's tokens
+  /// @param feeTiers The fee tiers to consider when searching for the pair's pools
+  /// @param cardinality The cardinality that will be guaranteed when quoting
+  /// @return preparedPools The pools that were prepared
+  function prepareSpecificFeeTiersWithCardinality(
+    address tokenA,
+    address tokenB,
+    uint24[] calldata feeTiers,
+    uint16 cardinality
+  ) external returns (address[] memory preparedPools);
+
+  /// @notice Will increase all given pools observations, so they start accruing information for twap calculations
+  /// @param pools The pools to initialize
+  /// @param cardinality The cardinality that will be guaranteed when quoting
+  function prepareSpecificPoolsWithCardinality(address[] calldata pools, uint16 cardinality) external;
+
   /// @notice Adds support for a new fee tier
   /// @dev Will revert if the given tier is invalid, or already supported
   /// @param feeTier The new fee tier to add
