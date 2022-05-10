@@ -33,7 +33,7 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
     '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'
   );
 
-  const SALT = utils.formatBytes32String('ffff-v2.1.2');
+  const SALT = utils.formatBytes32String('MF-UniswapV3-StaticOracle-V1');
 
   const args = [UNISWAP_V3_FACTORY_ADDRESS, CARDINALITY_PER_MINUTE[chainId]];
 
