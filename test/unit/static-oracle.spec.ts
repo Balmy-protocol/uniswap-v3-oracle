@@ -147,6 +147,66 @@ contract('StaticOracle @skip-on-coverage', () => {
     });
   });
 
+  //
+
+  describe('prepareAllAvailablePoolsWithCardinality', () => {
+    let pools: FakeContract<IUniswapV3Pool>[];
+    const CARDINALITY = 50;
+    given(async () => {
+      pools = [uniswapV3Pool, uniswapV3Pool2];
+      await staticOracle.setPoolForTiersReturn(pools.map((pool) => pool.address));
+      await staticOracle.prepareAllAvailablePoolsWithCardinality(TOKEN_A, TOKEN_B, CARDINALITY);
+    });
+    when('called', () => {
+      thenIncreasesCardinalityForPools({
+        pools: () => pools,
+        cardinality: CARDINALITY,
+      });
+    });
+  });
+
+  describe('prepareSpecificFeeTiersWithCardinality', () => {
+    when('sending tiers that do not have pool', () => {
+      given(async () => {
+        await staticOracle.setPoolForTiersReturn([]);
+      });
+      then('tx reverts with message', async () => {
+        await expect(staticOracle.prepareSpecificFeeTiersWithCardinality(TOKEN_A, TOKEN_B, [300], 100)).to.be.revertedWith(
+          'Given tier does not have pool'
+        );
+      });
+    });
+    when('all sent tiers have pools', () => {
+      let pools: FakeContract<IUniswapV3Pool>[];
+      const CARDINALITY = 39;
+      given(async () => {
+        pools = [uniswapV3Pool];
+        await staticOracle.setPoolForTiersReturn(pools.map((pool) => pool.address));
+        await staticOracle.prepareSpecificFeeTiersWithCardinality(TOKEN_A, TOKEN_B, [300], CARDINALITY);
+      });
+      thenIncreasesCardinalityForPools({
+        pools: () => pools,
+        cardinality: CARDINALITY,
+      });
+    });
+  });
+
+  describe('prepareSpecificPoolsWithCardinality', () => {
+    let pools: FakeContract<IUniswapV3Pool>[];
+    const CARDINALITY = 14;
+    given(async () => {
+      pools = [uniswapV3Pool, uniswapV3Pool2];
+      await staticOracle.prepareSpecificPoolsWithCardinality(
+        pools.map((pool) => pool.address),
+        CARDINALITY
+      );
+    });
+    thenIncreasesCardinalityForPools({
+      pools: () => pools,
+      cardinality: CARDINALITY,
+    });
+  });
+
   function thenIncreasesCardinalityForPools({
     pools,
     cardinality,
