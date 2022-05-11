@@ -2,6 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
+import '@openzeppelin/contracts/utils/Address.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol';
 import '@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol';
@@ -193,8 +194,8 @@ contract StaticOracle is IStaticOracle {
     address[] memory pools = new address[](feeTiers.length);
     uint256 validPools;
     for (uint256 i; i < feeTiers.length; i++) {
-      address pool = UNISWAP_V3_FACTORY.getPool(tokenA, tokenB, feeTiers[i]);
-      if (pool != address(0)) {
+      address pool = PoolAddress.computeAddress(address(UNISWAP_V3_FACTORY), PoolAddress.getPoolKey(tokenA, tokenB, feeTiers[i]));
+      if (Address.isContract(pool)) {
         pools[validPools++] = pool;
       }
     }

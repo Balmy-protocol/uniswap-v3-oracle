@@ -14,6 +14,7 @@ import {
   IUniswapV3Factory,
   IUniswapV3Factory__factory,
   StaticOracleMock__factory,
+  StaticOracleMock,
 } from '@typechained';
 import moment from 'moment';
 import { FeeAmount, encodePriceSqrt, getCreate2Address, getMinTick, TICK_SPACINGS, getMaxTick } from '@utils/uniswap';
@@ -22,7 +23,7 @@ import { constants, ContractFactory, utils } from 'ethers';
 contract('StaticOracle', () => {
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
-  let staticOracle: StaticOracle;
+  let staticOracle: StaticOracleMock;
   let snapshotId: string;
 
   let tokenA: ERC20Mock;
@@ -78,6 +79,43 @@ contract('StaticOracle', () => {
 
   beforeEach(async () => {
     await evm.snapshot.revert(snapshotId);
+  });
+
+  describe('_getPoolsForTiers', () => {
+    when('sending no fee tiers', () => {
+      then('returns empty array', async () => {
+        expect(await staticOracle.getPoolsForTiers(tokenA.address, tokenB.address, [])).to.be.empty;
+      });
+    });
+    when('sending fee tiers but none have pool', () => {
+      then('returns empty array', async () => {
+        expect(await staticOracle.getPoolsForTiers(tokenA.address, tokenB.address, [500, 3000])).to.be.empty;
+      });
+    });
+    when('sending fee tiers and some have pools', () => {
+      let pools: { [fees: number]: string } = {};
+      given(async () => {
+        pools = await createPoolsWithSupport({
+          tokenA: tokenA.address,
+          tokenB: tokenB.address,
+          feesAndSupportingPeriod: [
+            {
+              fee: FeeAmount.LOW,
+              supportPeriod: false,
+            },
+            {
+              fee: FeeAmount.MEDIUM,
+              supportPeriod: false,
+            },
+          ],
+        });
+      });
+      then('returns the ones that have pools', async () => {
+        expect(
+          await staticOracle.callStatic.getPoolsForTiers(tokenA.address, tokenB.address, [FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH])
+        ).to.eql(Object.values(pools));
+      });
+    });
   });
 
   describe('quoteAllAvailablePoolsWithTimePeriod', () => {

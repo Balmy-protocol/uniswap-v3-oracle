@@ -354,35 +354,6 @@ contract('StaticOracle @skip-on-coverage', () => {
     ]);
   }
 
-  describe('_getPoolsForTiers', () => {
-    when('sending none fee tiers', () => {
-      then('returns empty array', async () => {
-        expect(await staticOracle.getPoolsForTiers(TOKEN_A, TOKEN_B, [])).to.be.empty;
-      });
-    });
-    when('sending fee tiers but none have pool', () => {
-      then('returns empty array', async () => {
-        expect(await staticOracle.getPoolsForTiers(TOKEN_A, TOKEN_B, BASE_KNOWN_FEE_TIERS)).to.be.empty;
-      });
-    });
-    when('sending fee tiers and some have pools', () => {
-      const POOL_A = wallet.generateRandomAddress();
-      const POOL_B = wallet.generateRandomAddress();
-      let pools: string[];
-      given(async () => {
-        addPoolToFactory(TOKEN_A, TOKEN_B, BASE_KNOWN_FEE_TIERS[1], POOL_A);
-        addPoolToFactory(TOKEN_A, TOKEN_B, BASE_KNOWN_FEE_TIERS[2], POOL_B);
-        pools = await staticOracle.callStatic.getPoolsForTiers(TOKEN_A, TOKEN_B, BASE_KNOWN_FEE_TIERS);
-      });
-      then('returns the ones that have pools', async () => {
-        expect(uniswapV3Factory.getPool).to.have.been.calledWith(TOKEN_A, TOKEN_B, BASE_KNOWN_FEE_TIERS[0]);
-        expect(uniswapV3Factory.getPool).to.have.been.calledWith(TOKEN_A, TOKEN_B, BASE_KNOWN_FEE_TIERS[1]);
-        expect(uniswapV3Factory.getPool).to.have.been.calledWith(TOKEN_A, TOKEN_B, BASE_KNOWN_FEE_TIERS[2]);
-        expect(pools).to.eql([POOL_A, POOL_B]);
-      });
-    });
-  });
-
   describe('_copyValidElementsIntoNewArray', () => {
     when('copying all valid elements of temp array', () => {
       then('returns temp array', async () => {
