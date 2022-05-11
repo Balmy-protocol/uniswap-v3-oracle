@@ -72,8 +72,7 @@ contract StaticOracle is IStaticOracle {
     address tokenB,
     uint32 period
   ) external override returns (address[] memory preparedPools) {
-    preparedPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
-    _prepare(preparedPools, period);
+    return prepareAllAvailablePoolsWithCardinality(tokenA, tokenB, _getCardinalityForTimePeriod(period));
   }
 
   /// @inheritdoc IStaticOracle
@@ -83,14 +82,39 @@ contract StaticOracle is IStaticOracle {
     uint24[] calldata feeTiers,
     uint32 period
   ) external override returns (address[] memory preparedPools) {
-    preparedPools = _getPoolsForTiers(tokenA, tokenB, feeTiers);
-    require(preparedPools.length == feeTiers.length, 'Given tier does not have pool');
-    _prepare(preparedPools, period);
+    return prepareSpecificFeeTiersWithCardinality(tokenA, tokenB, feeTiers, _getCardinalityForTimePeriod(period));
   }
 
   /// @inheritdoc IStaticOracle
   function prepareSpecificPoolsWithTimePeriod(address[] calldata pools, uint32 period) external override {
-    _prepare(pools, period);
+    prepareSpecificPoolsWithCardinality(pools, _getCardinalityForTimePeriod(period));
+  }
+
+  /// @inheritdoc IStaticOracle
+  function prepareAllAvailablePoolsWithCardinality(
+    address tokenA,
+    address tokenB,
+    uint16 cardinality
+  ) public override returns (address[] memory preparedPools) {
+    preparedPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
+    _prepare(preparedPools, cardinality);
+  }
+
+  /// @inheritdoc IStaticOracle
+  function prepareSpecificFeeTiersWithCardinality(
+    address tokenA,
+    address tokenB,
+    uint24[] calldata feeTiers,
+    uint16 cardinality
+  ) public override returns (address[] memory preparedPools) {
+    preparedPools = _getPoolsForTiers(tokenA, tokenB, feeTiers);
+    require(preparedPools.length == feeTiers.length, 'Given tier does not have pool');
+    _prepare(preparedPools, cardinality);
+  }
+
+  /// @inheritdoc IStaticOracle
+  function prepareSpecificPoolsWithCardinality(address[] calldata pools, uint16 cardinality) public override {
+    _prepare(pools, cardinality);
   }
 
   /// @inheritdoc IStaticOracle
@@ -102,10 +126,14 @@ contract StaticOracle is IStaticOracle {
     _knownFeeTiers.push(feeTier);
   }
 
-  function _prepare(address[] memory pools, uint32 period) internal {
-    uint16 cardinality = uint16((period * CARDINALITY_PER_MINUTE) / 60) + 1; // We add 1 just to be on the safe side
-    for (uint256 i; i < pools.length; i++) {
-      IUniswapV3Pool(pools[i]).increaseObservationCardinalityNext(cardinality);
+  function _getCardinalityForTimePeriod(uint32 _period) internal view returns (uint16 _cardinality) {
+    // We add 1 just to be on the safe side
+    _cardinality = uint16((_period * CARDINALITY_PER_MINUTE) / 60) + 1;
+  }
+
+  function _prepare(address[] memory _pools, uint16 _cardinality) internal {
+    for (uint256 i; i < _pools.length; i++) {
+      IUniswapV3Pool(_pools[i]).increaseObservationCardinalityNext(_cardinality);
     }
   }
 
