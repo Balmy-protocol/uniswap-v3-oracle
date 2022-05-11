@@ -82,7 +82,7 @@ contract('StaticOracle', () => {
   });
 
   describe('_getPoolsForTiers', () => {
-    when('sending none fee tiers', () => {
+    when('sending no fee tiers', () => {
       then('returns empty array', async () => {
         expect(await staticOracle.getPoolsForTiers(tokenA.address, tokenB.address, [])).to.be.empty;
       });
