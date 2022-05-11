@@ -4,14 +4,14 @@
 
 # StaticOracle
 
-StaticOracle is a tool developed under Uniswap's grant program that aims to help developers integrate easily and fast with uniswap's v3 twaps oracles.
+StaticOracle is a tool developed under Uniswap's grant program that aims to help developers integrate easily and fast with Uniswap's v3 TWAP oracles.
 
-This is done by leveraging already existing [WeightedOracleLibrary]() implemented by [Nicolás Chamo](https://github.com/nchamo).
+This is done by leveraging already existing [WeightedOracleLibrary](https://github.com/Uniswap/v3-periphery/pull/146) implemented by [Nicolás Chamo](https://github.com/nchamo).
 
 StaticOracle will allow developers to:
 
-- Prepare a set of pools (for exmaple: by a token pair and a fee tier) to support a certain period of time (for example: 60 seconds).
-- Quote a TWAP for a set of pools (for exmaple: by a token pair and a fee tier, or addresses).
+- Prepare a set of pools (for example: by a token pair and a fee tier) to support a certain period of time (for example: 60 seconds).
+- Quote a TWAP for a set of pools (for example: by a token pair and a fee tier, or addresses).
 
 ## Package
 
