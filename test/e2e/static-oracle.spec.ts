@@ -111,9 +111,9 @@ contract('StaticOracle', () => {
         });
       });
       then('returns the ones that have pools', async () => {
-        expect(await staticOracle.callStatic.getPoolsForTiers(tokenA.address, tokenB.address, [FeeAmount.LOW, FeeAmount.MEDIUM])).to.eql(
-          Object.values(pools)
-        );
+        expect(
+          await staticOracle.callStatic.getPoolsForTiers(tokenA.address, tokenB.address, [FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH])
+        ).to.eql(Object.values(pools));
       });
     });
   });
