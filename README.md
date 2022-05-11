@@ -36,5 +36,3 @@ yarn install @mean-finance/uniswap-v3-oracle
 ```sh
 npm install @mean-finance/uniswap-v3-oracle
 ```
-
-## Usage
