@@ -147,8 +147,6 @@ contract('StaticOracle @skip-on-coverage', () => {
     });
   });
 
-  //
-
   describe('prepareAllAvailablePoolsWithCardinality', () => {
     let pools: FakeContract<IUniswapV3Pool>[];
     const CARDINALITY = 50;
@@ -256,9 +254,9 @@ contract('StaticOracle @skip-on-coverage', () => {
     });
   });
 
-  describe('_getCadinalityForTimePeriod', () => {
+  describe('_getCardinalityForTimePeriod', () => {
     it('calculates cardinality for time period correctly', async () => {
-      expect(await staticOracle.getCadinalityForTimePeriod(30)).to.be.equal(getCardinalityForPeriod(30));
+      expect(await staticOracle.getCardinalityForTimePeriod(30)).to.be.equal(getCardinalityForPeriod(30));
     });
   });
 
