@@ -73,7 +73,7 @@ contract StaticOracle is IStaticOracle {
     uint32 period
   ) external override returns (address[] memory preparedPools) {
     preparedPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
-    _prepare(preparedPools, _getCadinalityForTimePeriod(period));
+    _prepare(preparedPools, _getCardinalityForTimePeriod(period));
   }
 
   /// @inheritdoc IStaticOracle
@@ -85,12 +85,12 @@ contract StaticOracle is IStaticOracle {
   ) external override returns (address[] memory preparedPools) {
     preparedPools = _getPoolsForTiers(tokenA, tokenB, feeTiers);
     require(preparedPools.length == feeTiers.length, 'Given tier does not have pool');
-    _prepare(preparedPools, _getCadinalityForTimePeriod(period));
+    _prepare(preparedPools, _getCardinalityForTimePeriod(period));
   }
 
   /// @inheritdoc IStaticOracle
   function prepareSpecificPoolsWithTimePeriod(address[] calldata pools, uint32 period) external override {
-    _prepare(pools, _getCadinalityForTimePeriod(period));
+    _prepare(pools, _getCardinalityForTimePeriod(period));
   }
 
   /// @inheritdoc IStaticOracle
@@ -129,7 +129,7 @@ contract StaticOracle is IStaticOracle {
     _knownFeeTiers.push(feeTier);
   }
 
-  function _getCadinalityForTimePeriod(uint32 _period) internal view returns (uint16 _cardinality) {
+  function _getCardinalityForTimePeriod(uint32 _period) internal view returns (uint16 _cardinality) {
     // We add 1 just to be on the safe side
     _cardinality = uint16((_period * CARDINALITY_PER_MINUTE) / 60) + 1;
   }
