@@ -87,7 +87,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 9999,
           },
         },
       },
@@ -99,6 +99,7 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS ? true : false,
     showMethodSig: true,
     onlyCalledMethods: false,
+    excludeContracts: ['ERC20'],
   },
   preprocess: {
     eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat'),
