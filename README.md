@@ -21,6 +21,10 @@ The package will contain:
 - Compatible deployments for [hardhat-deploy](https://github.com/wighawag/hardhat-deploy) plugin under the `@mean-finance/uniswap-v3-oracle/deployments` folder.
 - Typescript smart contract typings under `@mean-finance/uniswap-v3-oracle/typechained`
 
+## Documentation
+
+Everything that you need to know as a developer on how to use StaticOracle can be read in the [documented interface](./solidity/interfaces/IStaticOracle.sol).
+
 ## Installation
 
 To install with [**Hardhat**](https://github.com/nomiclabs/hardhat) or [**Truffle**](https://github.com/trufflesuite/truffle):
@@ -36,3 +40,19 @@ yarn install @mean-finance/uniswap-v3-oracle
 ```sh
 npm install @mean-finance/uniswap-v3-oracle
 ```
+
+### Deployment Registry
+
+Contract deployed at the same address `0xB210CE856631EeEB767eFa666EC7C1C57738d438` accross the following networks:
+
+- [Ethereum Ropsten](https://ropsten.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Ethereum Rinkeby](https://rinkeby.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Ethereum Kovan](https://kovan.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Ethereum Goerli](https://goerli.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Ethereum Mainnet](https://etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Optimism Mainnet](https://optimistic.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Optimism Kovan](https://kovan-optimistic.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Arbitrum Mainnet](https://arbiscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Arbitrum Rinkeby](https://testnet.arbiscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Polygon Mainnet](https://polygonscan.com/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Polygon Mumbai](https://mumbai.polygonscan.com/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
