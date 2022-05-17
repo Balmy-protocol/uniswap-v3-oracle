@@ -10,7 +10,6 @@ import {
   ERC20Mock__factory,
   NonfungiblePositionManager,
   NonfungiblePositionManager__factory,
-  StaticOracle,
   IUniswapV3Factory,
   IUniswapV3Factory__factory,
   StaticOracleMock__factory,

@@ -64,12 +64,4 @@ contract StaticOracleMock is StaticOracle {
   ) external view returns (address[] memory) {
     return _getPoolsForTiers(tokenA, tokenB, feeTiers);
   }
-
-  function copyValidElementsIntoNewArray(address[] calldata tempArray, uint256 amountOfValidElements)
-    external
-    pure
-    returns (address[] memory array)
-  {
-    return _copyValidElementsIntoNewArray(tempArray, amountOfValidElements);
-  }
 }
