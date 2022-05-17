@@ -165,12 +165,12 @@ contract StaticOracle is IStaticOracle {
     address tokenA,
     address tokenB,
     uint32 period
-  ) internal view virtual returns (address[] memory) {
+  ) internal view virtual returns (address[] memory queryablePools) {
     address[] memory existingPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
     // If period is 0, then just return all existing pools
     if (period == 0) return existingPools;
 
-    address[] memory queryablePools = new address[](existingPools.length);
+    queryablePools = new address[](existingPools.length);
     uint256 validPools;
     for (uint256 i; i < existingPools.length; i++) {
       if (OracleLibrary.getOldestObservationSecondsAgo(existingPools[i]) >= period) {
@@ -178,7 +178,7 @@ contract StaticOracle is IStaticOracle {
       }
     }
 
-    return _copyValidElementsIntoNewArray(queryablePools, validPools);
+    _resizeArray(queryablePools, validPools);
   }
 
   /// @notice Takes a pair and some fee tiers, and returns all pools that match those tiers
@@ -190,8 +190,8 @@ contract StaticOracle is IStaticOracle {
     address tokenA,
     address tokenB,
     uint24[] memory feeTiers
-  ) internal view virtual returns (address[] memory) {
-    address[] memory pools = new address[](feeTiers.length);
+  ) internal view virtual returns (address[] memory pools) {
+    pools = new address[](feeTiers.length);
     uint256 validPools;
     for (uint256 i; i < feeTiers.length; i++) {
       address pool = PoolAddress.computeAddress(address(UNISWAP_V3_FACTORY), PoolAddress.getPoolKey(tokenA, tokenB, feeTiers[i]));
@@ -200,21 +200,16 @@ contract StaticOracle is IStaticOracle {
       }
     }
 
-    return _copyValidElementsIntoNewArray(pools, validPools);
+    _resizeArray(pools, validPools);
   }
 
-  function _copyValidElementsIntoNewArray(address[] memory tempArray, uint256 amountOfValidElements)
-    internal
-    pure
-    returns (address[] memory array)
-  {
-    // If all elements are valid, then just return the temp array
-    if (tempArray.length == amountOfValidElements) return tempArray;
+  function _resizeArray(address[] memory array, uint256 amountOfValidElements) internal pure {
+    // If all elements are valid, then nothing to do here
+    if (array.length == amountOfValidElements) return;
 
-    // If not, then copy valid elements into new array
-    array = new address[](amountOfValidElements);
-    for (uint256 i; i < amountOfValidElements; i++) {
-      array[i] = tempArray[i];
+    // If not, then resize the array
+    assembly {
+      mstore(array, amountOfValidElements)
     }
   }
 }

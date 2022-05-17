@@ -1,5 +1,5 @@
 import chai, { expect } from 'chai';
-import { FakeContract, MockContract, MockContractFactory, smock } from '@defi-wonderland/smock';
+import { FakeContract, smock } from '@defi-wonderland/smock';
 import {
   IUniswapV3Factory,
   IUniswapV3Factory__factory,
@@ -11,7 +11,6 @@ import {
 import { contract, given, then, when } from '@utils/bdd';
 import { ethers } from 'hardhat';
 import { snapshot } from '@utils/evm';
-import { hexZeroPad } from 'ethers/lib/utils';
 import { evm, wallet } from '@utils';
 import { constants, utils } from 'ethers';
 import moment from 'moment';
@@ -352,33 +351,6 @@ contract('StaticOracle @skip-on-coverage', () => {
       0, // secondsPerLiquidityCumulativeX128,
       true, // initialized
     ]);
-  }
-
-  describe('_copyValidElementsIntoNewArray', () => {
-    when('copying all valid elements of temp array', () => {
-      then('returns temp array', async () => {
-        expect(
-          await staticOracle.copyValidElementsIntoNewArray([hexZeroPad('0x1', 20), hexZeroPad('0x2', 20), hexZeroPad('0x3', 20)], 3)
-        ).to.eql([hexZeroPad('0x1', 20), hexZeroPad('0x2', 20), hexZeroPad('0x3', 20)]);
-      });
-    });
-    when('copying part of the elements of temp array', () => {
-      then('returns array with valid elements', async () => {
-        const ARRAY = [hexZeroPad('0x1', 20), hexZeroPad('0x2', 20), hexZeroPad('0x3', 20)];
-        expect(await staticOracle.copyValidElementsIntoNewArray(ARRAY, 2)).to.eql([hexZeroPad('0x1', 20), hexZeroPad('0x2', 20)]);
-      });
-    });
-    when('copying just one element of temp array', () => {
-      then('returns array with the first element', async () => {
-        const ARRAY = [hexZeroPad('0x1', 20), hexZeroPad('0x2', 20), hexZeroPad('0x3', 20)];
-        expect(await staticOracle.copyValidElementsIntoNewArray(ARRAY, 1)).to.eql([hexZeroPad('0x1', 20)]);
-      });
-    });
-  });
-
-  function addPoolToFactory(tokenA: string, tokenB: string, fee: number, pool: string) {
-    const key = `${tokenA}-${tokenB}-${fee}`;
-    supportedPools.set(key, pool);
   }
 
   function getCardinalityForPeriod(period: number): number {
