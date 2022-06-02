@@ -94,7 +94,7 @@ contract('StaticOracle', () => {
       then('it is supported', async () => {
         expect(await staticOracle.isPairSupported(tokenA.address, tokenB.address)).to.be.true;
       });
-      then('it is also supported in revert order', async () => {
+      then('it is also supported in reverse order', async () => {
         expect(await staticOracle.isPairSupported(tokenA.address, tokenB.address)).to.be.true;
       });
     });
