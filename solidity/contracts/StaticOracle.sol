@@ -34,97 +34,97 @@ contract StaticOracle is IStaticOracle {
 
   /// @inheritdoc IStaticOracle
   function quoteAllAvailablePoolsWithTimePeriod(
-    uint128 baseAmount,
-    address baseToken,
-    address quoteToken,
-    uint32 period
-  ) external view override returns (uint256 quoteAmount, address[] memory queriedPools) {
-    queriedPools = _getQueryablePoolsForTiers(baseToken, quoteToken, period);
-    quoteAmount = _quote(baseAmount, baseToken, quoteToken, queriedPools, period);
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    uint32 _period
+  ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
+    _queriedPools = _getQueryablePoolsForTiers(_baseToken, _quoteToken, _period);
+    _quoteAmount = _quote(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period);
   }
 
   /// @inheritdoc IStaticOracle
   function quoteSpecificFeeTiersWithTimePeriod(
-    uint128 baseAmount,
-    address baseToken,
-    address quoteToken,
-    uint24[] calldata feeTiers,
-    uint32 period
-  ) external view override returns (uint256 quoteAmount, address[] memory queriedPools) {
-    queriedPools = _getPoolsForTiers(baseToken, quoteToken, feeTiers);
-    require(queriedPools.length == feeTiers.length, 'Given tier does not have pool');
-    quoteAmount = _quote(baseAmount, baseToken, quoteToken, queriedPools, period);
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    uint24[] calldata _feeTiers,
+    uint32 _period
+  ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
+    _queriedPools = _getPoolsForTiers(_baseToken, _quoteToken, _feeTiers);
+    require(_queriedPools.length == _feeTiers.length, 'Given tier does not have pool');
+    _quoteAmount = _quote(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period);
   }
 
   /// @inheritdoc IStaticOracle
   function quoteSpecificPoolsWithTimePeriod(
-    uint128 baseAmount,
-    address baseToken,
-    address quoteToken,
-    address[] calldata pools,
-    uint32 period
-  ) external view override returns (uint256 quoteAmount) {
-    return _quote(baseAmount, baseToken, quoteToken, pools, period);
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    address[] calldata _pools,
+    uint32 _period
+  ) external view override returns (uint256 _quoteAmount) {
+    return _quote(_baseAmount, _baseToken, _quoteToken, _pools, _period);
   }
 
   /// @inheritdoc IStaticOracle
   function prepareAllAvailablePoolsWithTimePeriod(
-    address tokenA,
-    address tokenB,
-    uint32 period
-  ) external override returns (address[] memory preparedPools) {
-    return prepareAllAvailablePoolsWithCardinality(tokenA, tokenB, _getCardinalityForTimePeriod(period));
+    address _tokenA,
+    address _tokenB,
+    uint32 _period
+  ) external override returns (address[] memory _preparedPools) {
+    return prepareAllAvailablePoolsWithCardinality(_tokenA, _tokenB, _getCardinalityForTimePeriod(_period));
   }
 
   /// @inheritdoc IStaticOracle
   function prepareSpecificFeeTiersWithTimePeriod(
-    address tokenA,
-    address tokenB,
-    uint24[] calldata feeTiers,
-    uint32 period
-  ) external override returns (address[] memory preparedPools) {
-    return prepareSpecificFeeTiersWithCardinality(tokenA, tokenB, feeTiers, _getCardinalityForTimePeriod(period));
+    address _tokenA,
+    address _tokenB,
+    uint24[] calldata _feeTiers,
+    uint32 _period
+  ) external override returns (address[] memory _preparedPools) {
+    return prepareSpecificFeeTiersWithCardinality(_tokenA, _tokenB, _feeTiers, _getCardinalityForTimePeriod(_period));
   }
 
   /// @inheritdoc IStaticOracle
-  function prepareSpecificPoolsWithTimePeriod(address[] calldata pools, uint32 period) external override {
-    prepareSpecificPoolsWithCardinality(pools, _getCardinalityForTimePeriod(period));
+  function prepareSpecificPoolsWithTimePeriod(address[] calldata _pools, uint32 _period) external override {
+    prepareSpecificPoolsWithCardinality(_pools, _getCardinalityForTimePeriod(_period));
   }
 
   /// @inheritdoc IStaticOracle
   function prepareAllAvailablePoolsWithCardinality(
-    address tokenA,
-    address tokenB,
-    uint16 cardinality
-  ) public override returns (address[] memory preparedPools) {
-    preparedPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
-    _prepare(preparedPools, cardinality);
+    address _tokenA,
+    address _tokenB,
+    uint16 _cardinality
+  ) public override returns (address[] memory _preparedPools) {
+    _preparedPools = _getPoolsForTiers(_tokenA, _tokenB, _knownFeeTiers);
+    _prepare(_preparedPools, _cardinality);
   }
 
   /// @inheritdoc IStaticOracle
   function prepareSpecificFeeTiersWithCardinality(
-    address tokenA,
-    address tokenB,
-    uint24[] calldata feeTiers,
-    uint16 cardinality
-  ) public override returns (address[] memory preparedPools) {
-    preparedPools = _getPoolsForTiers(tokenA, tokenB, feeTiers);
-    require(preparedPools.length == feeTiers.length, 'Given tier does not have pool');
-    _prepare(preparedPools, cardinality);
+    address _tokenA,
+    address _tokenB,
+    uint24[] calldata _feeTiers,
+    uint16 _cardinality
+  ) public override returns (address[] memory _preparedPools) {
+    _preparedPools = _getPoolsForTiers(_tokenA, _tokenB, _feeTiers);
+    require(_preparedPools.length == _feeTiers.length, 'Given tier does not have pool');
+    _prepare(_preparedPools, _cardinality);
   }
 
   /// @inheritdoc IStaticOracle
-  function prepareSpecificPoolsWithCardinality(address[] calldata pools, uint16 cardinality) public override {
-    _prepare(pools, cardinality);
+  function prepareSpecificPoolsWithCardinality(address[] calldata _pools, uint16 _cardinality) public override {
+    _prepare(_pools, _cardinality);
   }
 
   /// @inheritdoc IStaticOracle
-  function addNewFeeTier(uint24 feeTier) external override {
-    require(UNISWAP_V3_FACTORY.feeAmountTickSpacing(feeTier) != 0, 'Invalid fee tier');
+  function addNewFeeTier(uint24 _feeTier) external override {
+    require(UNISWAP_V3_FACTORY.feeAmountTickSpacing(_feeTier) != 0, 'Invalid fee tier');
     for (uint256 i; i < _knownFeeTiers.length; i++) {
-      require(_knownFeeTiers[i] != feeTier, 'Tier already supported');
+      require(_knownFeeTiers[i] != _feeTier, 'Tier already supported');
     }
-    _knownFeeTiers.push(feeTier);
+    _knownFeeTiers.push(_feeTier);
   }
 
   function _getCardinalityForTimePeriod(uint32 _period) internal view returns (uint16 _cardinality) {
@@ -139,77 +139,77 @@ contract StaticOracle is IStaticOracle {
   }
 
   function _quote(
-    uint128 baseAmount,
-    address baseToken,
-    address quoteToken,
-    address[] memory pools,
-    uint32 period
-  ) internal view returns (uint256 quoteAmount) {
-    require(pools.length > 0, 'No defined pools');
-    OracleLibrary.WeightedTickData[] memory tickData = new OracleLibrary.WeightedTickData[](pools.length);
-    for (uint256 i; i < pools.length; i++) {
-      (tickData[i].tick, tickData[i].weight) = period > 0
-        ? OracleLibrary.consult(pools[i], period)
-        : OracleLibrary.getBlockStartingTickAndLiquidity(pools[i]);
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    address[] memory _pools,
+    uint32 _period
+  ) internal view returns (uint256 _quoteAmount) {
+    require(_pools.length > 0, 'No defined pools');
+    OracleLibrary.WeightedTickData[] memory _tickData = new OracleLibrary.WeightedTickData[](_pools.length);
+    for (uint256 i; i < _pools.length; i++) {
+      (_tickData[i].tick, _tickData[i].weight) = _period > 0
+        ? OracleLibrary.consult(_pools[i], _period)
+        : OracleLibrary.getBlockStartingTickAndLiquidity(_pools[i]);
     }
-    int24 weightedTick = tickData.length == 1 ? tickData[0].tick : OracleLibrary.getWeightedArithmeticMeanTick(tickData);
-    return OracleLibrary.getQuoteAtTick(weightedTick, baseAmount, baseToken, quoteToken);
+    int24 _weightedTick = _tickData.length == 1 ? _tickData[0].tick : OracleLibrary.getWeightedArithmeticMeanTick(_tickData);
+    return OracleLibrary.getQuoteAtTick(_weightedTick, _baseAmount, _baseToken, _quoteToken);
   }
 
   /// @notice Takes a pair and a time period, and returns all pools that could be queried for that period
-  /// @param tokenA One of the pair's tokens
-  /// @param tokenB The other of the pair's tokens
-  /// @param period The period that we want to query for
-  /// @return queryablePools All pools that can be queried
+  /// @param _tokenA One of the pair's tokens
+  /// @param _tokenB The other of the pair's tokens
+  /// @param _period The period that we want to query for
+  /// @return _queryablePools All pools that can be queried
   function _getQueryablePoolsForTiers(
-    address tokenA,
-    address tokenB,
-    uint32 period
-  ) internal view virtual returns (address[] memory queryablePools) {
-    address[] memory existingPools = _getPoolsForTiers(tokenA, tokenB, _knownFeeTiers);
+    address _tokenA,
+    address _tokenB,
+    uint32 _period
+  ) internal view virtual returns (address[] memory _queryablePools) {
+    address[] memory _existingPools = _getPoolsForTiers(_tokenA, _tokenB, _knownFeeTiers);
     // If period is 0, then just return all existing pools
-    if (period == 0) return existingPools;
+    if (_period == 0) return _existingPools;
 
-    queryablePools = new address[](existingPools.length);
-    uint256 validPools;
-    for (uint256 i; i < existingPools.length; i++) {
-      if (OracleLibrary.getOldestObservationSecondsAgo(existingPools[i]) >= period) {
-        queryablePools[validPools++] = existingPools[i];
+    _queryablePools = new address[](_existingPools.length);
+    uint256 _validPools;
+    for (uint256 i; i < _existingPools.length; i++) {
+      if (OracleLibrary.getOldestObservationSecondsAgo(_existingPools[i]) >= _period) {
+        _queryablePools[_validPools++] = _existingPools[i];
       }
     }
 
-    _resizeArray(queryablePools, validPools);
+    _resizeArray(_queryablePools, _validPools);
   }
 
   /// @notice Takes a pair and some fee tiers, and returns all pools that match those tiers
-  /// @param tokenA One of the pair's tokens
-  /// @param tokenB The other of the pair's tokens
-  /// @param feeTiers The fee tiers to consider when searching for the pair's pools
-  /// @return pools The pools for the given pair and fee tiers
+  /// @param _tokenA One of the pair's tokens
+  /// @param _tokenB The other of the pair's tokens
+  /// @param _feeTiers The fee tiers to consider when searching for the pair's pools
+  /// @return _pools The pools for the given pair and fee tiers
   function _getPoolsForTiers(
-    address tokenA,
-    address tokenB,
-    uint24[] memory feeTiers
-  ) internal view virtual returns (address[] memory pools) {
-    pools = new address[](feeTiers.length);
-    uint256 validPools;
-    for (uint256 i; i < feeTiers.length; i++) {
-      address pool = PoolAddress.computeAddress(address(UNISWAP_V3_FACTORY), PoolAddress.getPoolKey(tokenA, tokenB, feeTiers[i]));
+    address _tokenA,
+    address _tokenB,
+    uint24[] memory _feeTiers
+  ) internal view virtual returns (address[] memory _pools) {
+    _pools = new address[](_feeTiers.length);
+    uint256 _validPools;
+    for (uint256 i; i < _feeTiers.length; i++) {
+      address pool = PoolAddress.computeAddress(address(UNISWAP_V3_FACTORY), PoolAddress.getPoolKey(_tokenA, _tokenB, _feeTiers[i]));
       if (Address.isContract(pool)) {
-        pools[validPools++] = pool;
+        _pools[_validPools++] = pool;
       }
     }
 
-    _resizeArray(pools, validPools);
+    _resizeArray(_pools, _validPools);
   }
 
-  function _resizeArray(address[] memory array, uint256 amountOfValidElements) internal pure {
+  function _resizeArray(address[] memory _array, uint256 _amountOfValidElements) internal pure {
     // If all elements are valid, then nothing to do here
-    if (array.length == amountOfValidElements) return;
+    if (_array.length == _amountOfValidElements) return;
 
     // If not, then resize the array
     assembly {
-      mstore(array, amountOfValidElements)
+      mstore(_array, _amountOfValidElements)
     }
   }
 }

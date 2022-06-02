@@ -18,26 +18,26 @@ contract StaticOracleMock is StaticOracle {
     return _getCardinalityForTimePeriod(_period);
   }
 
-  function prepare(address[] memory pools, uint16 cardinality) external {
-    _prepare(pools, cardinality);
+  function prepare(address[] memory _pools, uint16 _cardinality) external {
+    _prepare(_pools, _cardinality);
   }
 
   function quote(
-    uint128 baseAmount,
-    address baseToken,
-    address quoteToken,
-    address[] memory pools,
-    uint32 period
-  ) external view returns (uint256 quoteAmount) {
-    return _quote(baseAmount, baseToken, quoteToken, pools, period);
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    address[] memory _pools,
+    uint32 _period
+  ) external view returns (uint256 _quoteAmount) {
+    return _quote(_baseAmount, _baseToken, _quoteToken, _pools, _period);
   }
 
   function getQueryablePoolsForTiers(
-    address tokenA,
-    address tokenB,
-    uint32 period
+    address _tokenA,
+    address _tokenB,
+    uint32 _period
   ) external view returns (address[] memory) {
-    return _getQueryablePoolsForTiers(tokenA, tokenB, period);
+    return _getQueryablePoolsForTiers(_tokenA, _tokenB, _period);
   }
 
   address[] internal _poolsForTiersReturn;
@@ -47,21 +47,21 @@ contract StaticOracleMock is StaticOracle {
   }
 
   function _getPoolsForTiers(
-    address tokenA,
-    address tokenB,
-    uint24[] memory feeTiers
+    address _tokenA,
+    address _tokenB,
+    uint24[] memory _feeTiers
   ) internal view override returns (address[] memory) {
     if (_poolsForTiersReturn.length > 0) {
       return _poolsForTiersReturn;
     }
-    return super._getPoolsForTiers(tokenA, tokenB, feeTiers);
+    return super._getPoolsForTiers(_tokenA, _tokenB, _feeTiers);
   }
 
   function getPoolsForTiers(
-    address tokenA,
-    address tokenB,
-    uint24[] memory feeTiers
+    address _tokenA,
+    address _tokenB,
+    uint24[] memory _feeTiers
   ) external view returns (address[] memory) {
-    return _getPoolsForTiers(tokenA, tokenB, feeTiers);
+    return _getPoolsForTiers(_tokenA, _tokenB, _feeTiers);
   }
 }
