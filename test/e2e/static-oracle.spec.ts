@@ -80,6 +80,26 @@ contract('StaticOracle', () => {
     await evm.snapshot.revert(snapshotId);
   });
 
+  describe('isPairSupported', () => {
+    when('the given pair has no pools', () => {
+      then('it is not supported', async () => {
+        expect(await staticOracle.isPairSupported(tokenA.address, tokenB.address)).to.be.false;
+      });
+    });
+    when('the given pair has at least one pool', () => {
+      given(async () => {
+        await createPool({ tokenA: tokenA.address, tokenB: tokenB.address, fee: FeeAmount.MEDIUM });
+        await staticOracle.isPairSupported(tokenA.address, tokenB.address);
+      });
+      then('it is supported', async () => {
+        expect(await staticOracle.isPairSupported(tokenA.address, tokenB.address)).to.be.true;
+      });
+      then('it is also supported in reverse order', async () => {
+        expect(await staticOracle.isPairSupported(tokenA.address, tokenB.address)).to.be.true;
+      });
+    });
+  });
+
   describe('_getPoolsForTiers', () => {
     when('sending no fee tiers', () => {
       then('returns empty array', async () => {

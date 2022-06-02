@@ -33,6 +33,18 @@ contract StaticOracle is IStaticOracle {
   }
 
   /// @inheritdoc IStaticOracle
+  function isPairSupported(address _tokenA, address _tokenB) external view override returns (bool) {
+    uint256 _length = _knownFeeTiers.length;
+    for (uint256 i; i < _length; ++i) {
+      address _pool = PoolAddress.computeAddress(address(UNISWAP_V3_FACTORY), PoolAddress.getPoolKey(_tokenA, _tokenB, _knownFeeTiers[i]));
+      if (Address.isContract(_pool)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// @inheritdoc IStaticOracle
   function quoteAllAvailablePoolsWithTimePeriod(
     uint128 _baseAmount,
     address _baseToken,
@@ -194,9 +206,9 @@ contract StaticOracle is IStaticOracle {
     _pools = new address[](_feeTiers.length);
     uint256 _validPools;
     for (uint256 i; i < _feeTiers.length; i++) {
-      address pool = PoolAddress.computeAddress(address(UNISWAP_V3_FACTORY), PoolAddress.getPoolKey(_tokenA, _tokenB, _feeTiers[i]));
-      if (Address.isContract(pool)) {
-        _pools[_validPools++] = pool;
+      address _pool = PoolAddress.computeAddress(address(UNISWAP_V3_FACTORY), PoolAddress.getPoolKey(_tokenA, _tokenB, _feeTiers[i]));
+      if (Address.isContract(_pool)) {
+        _pools[_validPools++] = _pool;
       }
     }
 
