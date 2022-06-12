@@ -137,6 +137,36 @@ contract('StaticOracle', () => {
     });
   });
 
+  describe('getAllPoolsForPair', () => {
+    when('there are no pools', () => {
+      then('an empty array is returned', async () => {
+        expect(await staticOracle.getAllPoolsForPair(tokenA.address, tokenB.address)).to.be.empty;
+      });
+    });
+    when('there are some pools', () => {
+      let pools: { [fees: number]: string } = {};
+      given(async () => {
+        pools = await createPoolsWithSupport({
+          tokenA: tokenA.address,
+          tokenB: tokenB.address,
+          feesAndSupportingPeriod: [
+            {
+              fee: FeeAmount.LOW,
+              supportPeriod: false,
+            },
+            {
+              fee: FeeAmount.MEDIUM,
+              supportPeriod: false,
+            },
+          ],
+        });
+      });
+      then('they are returned', async () => {
+        expect(await staticOracle.callStatic.getAllPoolsForPair(tokenA.address, tokenB.address)).to.eql(Object.values(pools));
+      });
+    });
+  });
+
   describe('quoteAllAvailablePoolsWithTimePeriod', () => {
     let pools: { [fees: number]: string } = {};
     when('there is a single pool', () => {

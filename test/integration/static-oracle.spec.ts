@@ -1,6 +1,6 @@
 import { deployments, ethers } from 'hardhat';
 import { evm, wallet } from '@utils';
-import { contract, given, then, when } from '@utils/bdd';
+import { contract, given } from '@utils/bdd';
 import { expect } from 'chai';
 import { getNodeUrl } from 'utils/env';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -20,10 +20,29 @@ contract('StaticOracle', () => {
   let deployer: SignerWithAddress;
   let staticOracle: StaticOracle;
 
-  describe('quote', () => {
-    before(async () => {
-      [deployer] = await ethers.getSigners();
+  before(async () => {
+    [deployer] = await ethers.getSigners();
+  });
+
+  describe(`getAllPoolsForPair`, () => {
+    given(async () => {
+      staticOracle = await forkAndDeploy(1, 'ethereum');
     });
+    it('all pools are returned correctly', async () => {
+      // Checking WETH/USDC pair
+      const pools = await staticOracle.getAllPoolsForPair(
+        '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+      );
+      expect(pools.map((_) => _.toLowerCase())).to.eql([
+        '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640', // 0.05%
+        '0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8', // 0.3%
+        '0x7bea39867e4169dbe237d55c8242a8f2fcdcc387', // 1%
+      ]);
+    });
+  });
+
+  describe('quote', () => {
     testQuoteOnNetwork({
       network: 'ethereum',
       chainId: 1,
@@ -54,22 +73,7 @@ contract('StaticOracle', () => {
     context(`on ${network}`, () => {
       let feedPrice: number;
       given(async () => {
-        // Set fork of network
-        await setTestChainId(chainId);
-        await evm.reset({
-          jsonRpcUrl: getNodeUrl(network),
-        });
-        // Give deployer role to our deployer address
-        const admin = await wallet.impersonate(DETERMINISTIC_FACTORY_ADMIN);
-        await wallet.setBalance({ account: admin._address, balance: constants.MaxUint256 });
-        const deterministicFactory = await ethers.getContractAt<DeterministicFactory>(
-          DeterministicFactory__factory.abi,
-          '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'
-        );
-        await deterministicFactory.connect(admin).grantRole(DEPLOYER_ROLE, deployer.address);
-        // Execute deployment script
-        await deployments.fixture(['StaticOracle'], { keepExistingDeployments: true });
-        staticOracle = await ethers.getContract<StaticOracle>('StaticOracle');
+        staticOracle = await forkAndDeploy(chainId, network);
         // Get ETH/USD price from coingecko
         feedPrice = await getLastPrice(network, weth);
       });
@@ -81,5 +85,24 @@ contract('StaticOracle', () => {
         );
       });
     });
+  }
+
+  async function forkAndDeploy(chainId: number, chainName: string): Promise<StaticOracle> {
+    // Set fork of network
+    await setTestChainId(chainId);
+    await evm.reset({
+      jsonRpcUrl: getNodeUrl(chainName),
+    });
+    // Give deployer role to our deployer address
+    const admin = await wallet.impersonate(DETERMINISTIC_FACTORY_ADMIN);
+    await wallet.setBalance({ account: admin._address, balance: constants.MaxUint256 });
+    const deterministicFactory = await ethers.getContractAt<DeterministicFactory>(
+      DeterministicFactory__factory.abi,
+      '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'
+    );
+    await deterministicFactory.connect(admin).grantRole(DEPLOYER_ROLE, deployer.address);
+    // Execute deployment script
+    await deployments.fixture(['StaticOracle'], { keepExistingDeployments: true });
+    return await ethers.getContract<StaticOracle>('StaticOracle');
   }
 });
