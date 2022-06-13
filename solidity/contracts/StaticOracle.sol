@@ -45,6 +45,11 @@ contract StaticOracle is IStaticOracle {
   }
 
   /// @inheritdoc IStaticOracle
+  function getAllPoolsForPair(address _tokenA, address _tokenB) public view override returns (address[] memory) {
+    return _getPoolsForTiers(_tokenA, _tokenB, _knownFeeTiers);
+  }
+
+  /// @inheritdoc IStaticOracle
   function quoteAllAvailablePoolsWithTimePeriod(
     uint128 _baseAmount,
     address _baseToken,
@@ -109,7 +114,7 @@ contract StaticOracle is IStaticOracle {
     address _tokenB,
     uint16 _cardinality
   ) public override returns (address[] memory _preparedPools) {
-    _preparedPools = _getPoolsForTiers(_tokenA, _tokenB, _knownFeeTiers);
+    _preparedPools = getAllPoolsForPair(_tokenA, _tokenB);
     _prepare(_preparedPools, _cardinality);
   }
 
@@ -178,7 +183,7 @@ contract StaticOracle is IStaticOracle {
     address _tokenB,
     uint32 _period
   ) internal view virtual returns (address[] memory _queryablePools) {
-    address[] memory _existingPools = _getPoolsForTiers(_tokenA, _tokenB, _knownFeeTiers);
+    address[] memory _existingPools = getAllPoolsForPair(_tokenA, _tokenB);
     // If period is 0, then just return all existing pools
     if (_period == 0) return _existingPools;
 
