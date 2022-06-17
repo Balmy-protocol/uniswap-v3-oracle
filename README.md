@@ -45,9 +45,7 @@ npm install @mean-finance/uniswap-v3-oracle
 
 Contract deployed at the same address `0xB210CE856631EeEB767eFa666EC7C1C57738d438` accross the following networks:
 
-- [Ethereum Ropsten](https://ropsten.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
 - [Ethereum Rinkeby](https://rinkeby.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
-- [Ethereum Kovan](https://kovan.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
 - [Ethereum Goerli](https://goerli.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
 - [Ethereum Mainnet](https://etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
 - [Optimism Mainnet](https://optimistic.etherscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
