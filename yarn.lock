@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@0xged/hardhat-deploy@0.11.4-extended-rc3":
-  version "0.11.4-extended-rc3"
-  resolved "https://registry.yarnpkg.com/@0xged/hardhat-deploy/-/hardhat-deploy-0.11.4-extended-rc3.tgz#82c48d28d0a26009bd3f78538441e702ef6731c8"
-  integrity sha512-iAqmTtuX+BYzE0Bh466uzsIba1zap0Oxt+ieLDKLwkIFHOd1XNEsNqimM7babQEepdpiP6ue2NucqcUhVOe33w==
+"@0xged/hardhat-deploy@0.11.4":
+  version "0.11.4"
+  resolved "https://registry.yarnpkg.com/@0xged/hardhat-deploy/-/hardhat-deploy-0.11.4.tgz#cfcf42461089fe9a703245916dd006686ae680c8"
+  integrity sha512-n1fqwWclX72Zmo7Rj9BVCc4uq9OHW/fwKTYYd28xObX5o4bSa9ELy0eLqQOGD52LNd7AcWnvGzDnbnnVg3JYGQ==
   dependencies:
     "@ethersproject/abi" "^5.4.0"
     "@ethersproject/abstract-signer" "^5.4.1"
@@ -803,10 +803,10 @@
   resolved "https://registry.yarnpkg.com/@hutson/parse-repository-url/-/parse-repository-url-3.0.2.tgz#98c23c950a3d9b6c8f0daed06da6c3af06981340"
   integrity sha512-H9XAx3hc0BQHY6l+IFSWHDySypcXsvsuLhgYLUGywmJ5pswRVQJUHpOsobnLYp2ZUaUlKiKDrgWWhosOwAEM8Q==
 
-"@mean-finance/deterministic-factory@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@mean-finance/deterministic-factory/-/deterministic-factory-1.0.0.tgz#b18651549403b857e0d8397f1c36c02d4c956b18"
-  integrity sha512-m6TGKWIdMy3EgPmaMOD1Tb8NqB0x8PL7UiBTnGU2ZyqlvYzL5Iut+Zp0ScwDWGwTGDcRmSptZjiGX8Ta2C+jlw==
+"@mean-finance/deterministic-factory@1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@mean-finance/deterministic-factory/-/deterministic-factory-1.3.1.tgz#c80cfadc7b2a66ecd957297d74d1649ca8235d29"
+  integrity sha512-hMuQsJq8UbQwec3guLqGDWU8lN5/w7mX/AMdsfDnCpcYDT0B6kClNiDGZwv8cJZnG+i+9TDh0i7oJdZmn0qdPg==
   dependencies:
     "@openzeppelin/contracts" "4.6.0"
     "@rari-capital/solmate" "6.2.0"

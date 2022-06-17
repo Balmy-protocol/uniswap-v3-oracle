@@ -1,6 +1,6 @@
 {
   "name": "@mean-finance/uniswap-v3-oracle",
-  "version": "0.0.0",
+  "version": "1.0.0-rc1",
   "description": "Uniswap V3 Oracle",
   "keywords": [
     "ethereum",
@@ -75,13 +75,13 @@
     "eth-gas-reporter/colors": "1.4.0"
   },
   "dependencies": {
-    "@mean-finance/deterministic-factory": "1.0.0",
+    "@mean-finance/deterministic-factory": "1.3.1",
     "@openzeppelin/contracts": "3.4.0",
     "@uniswap/v3-core": "1.0.1",
     "@uniswap/v3-periphery": "1.4.1"
   },
   "devDependencies": {
-    "@0xged/hardhat-deploy": "0.11.4-extended-rc3",
+    "@0xged/hardhat-deploy": "0.11.4",
     "@codechecks/client": "0.1.12",
     "@commitlint/cli": "16.2.4",
     "@commitlint/config-conventional": "16.2.4",

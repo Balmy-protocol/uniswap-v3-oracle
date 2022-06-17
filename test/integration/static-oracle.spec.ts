@@ -1,4 +1,4 @@
-import { deployments, ethers } from 'hardhat';
+import hre, { deployments, ethers } from 'hardhat';
 import { evm, wallet } from '@utils';
 import { contract, given } from '@utils/bdd';
 import { expect } from 'chai';
@@ -21,7 +21,8 @@ contract('StaticOracle', () => {
   let staticOracle: StaticOracle;
 
   before(async () => {
-    [deployer] = await ethers.getSigners();
+    const { deployer: deployerAddress } = await hre.getNamedAccounts();
+    deployer = await ethers.getSigner(deployerAddress);
   });
 
   describe(`getAllPoolsForPair`, () => {

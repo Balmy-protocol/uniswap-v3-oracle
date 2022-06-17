@@ -4,7 +4,7 @@ import { deploy, getCreationCode } from '@utils/contracts';
 import { ethers } from 'hardhat';
 import { utils } from 'ethers';
 import { StaticOracle__factory } from '@typechained';
-import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory/typechained';
+import { deployThroughDeterministicFactory } from '@mean-finance/deterministic-factory/utils/deployment';
 import { DeployFunction } from '@0xged/hardhat-deploy/dist/types';
 
 const UNISWAP_V3_FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984';
@@ -28,43 +28,21 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
 
   const chainId = await getChainId(hre);
 
-  const deterministicFactory = await ethers.getContractAt<DeterministicFactory>(
-    DeterministicFactory__factory.abi,
-    '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'
-  );
-
-  const SALT = utils.formatBytes32String('MF-UniswapV3-StaticOracle-V1');
-
-  const args = [UNISWAP_V3_FACTORY_ADDRESS, CARDINALITY_PER_MINUTE[chainId]];
-
-  const creationCode = getCreationCode({
+  await deployThroughDeterministicFactory({
+    deployer,
+    name: 'StaticOracle',
+    salt: 'MF-UniswapV3-StaticOracle-V1',
+    contract: 'solidity/contracts/StaticOracle.sol:StaticOracle',
     bytecode: StaticOracle__factory.bytecode,
     constructorArgs: {
       types: ['address', 'uint8'],
-      values: args,
+      values: [UNISWAP_V3_FACTORY_ADDRESS, CARDINALITY_PER_MINUTE[chainId]],
+    },
+    log: !process.env.TEST,
+    overrides: {
+      gasLimit: 3_000_000,
     },
   });
-
-  const deploymentTx = await deterministicFactory.deploy(
-    SALT, // SALT
-    creationCode,
-    0 // Value
-  );
-
-  const receipt = await deploymentTx.wait();
-
-  const deployment = await hre.deployments.buildDeploymentSubmission({
-    name: 'StaticOracle',
-    contractAddress: await deterministicFactory.getDeployed(SALT),
-    options: {
-      contract: 'solidity/contracts/StaticOracle.sol:StaticOracle',
-      from: deployer,
-      args,
-    },
-    receipt,
-  });
-
-  await hre.deployments.save('StaticOracle', deployment);
 };
 
 deployFunction.dependencies = [];
