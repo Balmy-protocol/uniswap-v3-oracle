@@ -27,7 +27,7 @@ contract('StaticOracle', () => {
 
   describe(`getAllPoolsForPair`, () => {
     given(async () => {
-      staticOracle = await forkAndDeploy(1, 'ethereum');
+      staticOracle = await forkAndDeploy(1, 'ethereum', 14976820);
     });
     it('all pools are returned correctly', async () => {
       // Checking WETH/USDC pair
@@ -47,34 +47,50 @@ contract('StaticOracle', () => {
     testQuoteOnNetwork({
       network: 'ethereum',
       chainId: 1,
+      blockNumber: 14976820,
       weth: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
       usdc: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     });
     testQuoteOnNetwork({
       network: 'optimism',
       chainId: 10,
+      blockNumber: 12099200,
       weth: '0x4200000000000000000000000000000000000006',
       usdc: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
     });
     testQuoteOnNetwork({
       network: 'arbitrum',
       chainId: 42161,
+      blockNumber: 14854050,
       weth: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
       usdc: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
     });
     testQuoteOnNetwork({
       network: 'polygon',
       chainId: 137,
+      blockNumber: 29659645,
       weth: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
       usdc: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
     });
   });
 
-  function testQuoteOnNetwork({ network, chainId, weth, usdc }: { network: string; chainId: number; weth: string; usdc: string }): void {
+  function testQuoteOnNetwork({
+    network,
+    chainId,
+    blockNumber,
+    weth,
+    usdc,
+  }: {
+    network: string;
+    chainId: number;
+    blockNumber: number;
+    weth: string;
+    usdc: string;
+  }): void {
     context(`on ${network}`, () => {
       let feedPrice: number;
       given(async () => {
-        staticOracle = await forkAndDeploy(chainId, network);
+        staticOracle = await forkAndDeploy(chainId, network, blockNumber);
         // Get ETH/USD price from coingecko
         feedPrice = await getLastPrice(network, weth);
       });
@@ -88,11 +104,12 @@ contract('StaticOracle', () => {
     });
   }
 
-  async function forkAndDeploy(chainId: number, chainName: string): Promise<StaticOracle> {
+  async function forkAndDeploy(chainId: number, chainName: string, blockNumber: number): Promise<StaticOracle> {
     // Set fork of network
     await setTestChainId(chainId);
     await evm.reset({
       jsonRpcUrl: getNodeUrl(chainName),
+      blockNumber,
     });
     // Give deployer role to our deployer address
     const admin = await wallet.impersonate(DETERMINISTIC_FACTORY_ADMIN);
@@ -103,7 +120,7 @@ contract('StaticOracle', () => {
     );
     await deterministicFactory.connect(admin).grantRole(DEPLOYER_ROLE, deployer.address);
     // Execute deployment script
-    await deployments.fixture(['StaticOracle'], { keepExistingDeployments: true });
+    await deployments.fixture(['StaticOracle'], { keepExistingDeployments: false });
     return await ethers.getContract<StaticOracle>('StaticOracle');
   }
 });
