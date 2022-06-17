@@ -32,13 +32,16 @@
     }
   ],
   "files": [
-    "solidity/contracts",
-    "solidity/interfaces",
+    "solidity",
+    "!solidity/contracts/mocks/**",
     "artifacts/solidity/**/*.json",
+    "!artifacts/solidity/contracts/mocks/**",
     "!artifacts/solidity/**/**/*.dbg.json",
     "typechained",
+    "!typechained/**/*Mock*",
     "deployments",
     "!deployments/localhost",
+    "deploy",
     "!.env",
     "!**/.DS_Store"
   ],
