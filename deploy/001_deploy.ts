@@ -18,7 +18,7 @@ export const CARDINALITY_PER_MINUTE: { [chainId: string]: number } = {
   '10': 60, // Optimism: Blocks every ~1s
   '69': 60, // Optimism Kovan: Blocks every ~12
   '42161': 60, // Arbitrum: Blocks every ~1s
-  '421611': 60, // Arbitrum Rinkeby: Blocks every ~1s
+  '421613': 60, // Arbitrum Goerli: Blocks every ~1s
   '137': 30, // Polygon: Blocks every ~2s
   '80001': 12, // Polygon Mumbai: Blocks every ~5s
 };
