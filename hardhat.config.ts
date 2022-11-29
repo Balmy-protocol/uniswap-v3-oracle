@@ -1,17 +1,19 @@
 import 'dotenv/config';
-import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import '@typechain/hardhat/dist/type-extensions';
-import { removeConsoleLog } from 'hardhat-preprocessor';
-import 'hardhat-gas-reporter';
-import '@0xged/hardhat-deploy';
+// import 'hardhat-gas-reporter';
+// import '@0xged/hardhat-deploy';
 import './tasks/npm-publish-clean-typechain';
-import 'solidity-coverage';
+// import 'solidity-coverage';
 import { HardhatUserConfig, MultiSolcUserConfig, NetworksUserConfig } from 'hardhat/types';
 import * as env from './utils/env';
-import 'tsconfig-paths/register';
+// import 'tsconfig-paths/register';
+
+// @ts-ignore
+
+console.log(env.getNodeUrl('RPC_URL_ARBIGOERLI'));
 
 const networks: NetworksUserConfig =
   env.isHardhatCompile() || env.isHardhatClean() || env.isTesting()
@@ -19,8 +21,8 @@ const networks: NetworksUserConfig =
     : {
         hardhat: {
           forking: {
-            enabled: process.env.FORK ? true : false,
-            url: env.getNodeUrl('ethereum'),
+            enabled: process.env.RPC_URL_ARBIGOERLI ? true : false,
+            url: process.env.RPC_URL_ARBIGOERLI,
           },
         },
         ['ethereum-ropsten']: {
@@ -55,9 +57,9 @@ const networks: NetworksUserConfig =
           url: env.getNodeUrl('arbitrum'),
           accounts: env.getAccounts('arbitrum'),
         },
-        ['arbitrum-rinkeby']: {
-          url: env.getNodeUrl('arbitrum-rinkeby'),
-          accounts: env.getAccounts('arbitrum-rinkeby'),
+        ['arbitrum-goerli']: {
+          url: process.env.RPC_URL_ARBIGOERLI,
+          accounts: [process.env.FLORA_DEPLOYER_PKEY],
         },
         polygon: {
           url: env.getNodeUrl('polygon'),
@@ -80,18 +82,25 @@ const config: HardhatUserConfig = {
     timeout: process.env.MOCHA_TIMEOUT || 300000,
   },
   networks,
+  etherscan: {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: process.env.ARBISCAN_API_KEY,
+  },
   solidity: {
-    compilers: [
-      {
-        version: '0.7.6',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 9999,
-          },
-        },
+    version: '0.7.6',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 800,
       },
-    ],
+      metadata: {
+        // do not include the metadata hash, since this is machine dependent
+        // and we want all generated code to be deterministic
+        // https://docs.soliditylang.org/en/v0.7.6/metadata.html
+        bytecodeHash: 'none',
+      },
+    },
   },
   gasReporter: {
     currency: process.env.COINMARKETCAP_DEFAULT_CURRENCY || 'USD',
@@ -101,24 +110,10 @@ const config: HardhatUserConfig = {
     onlyCalledMethods: false,
     excludeContracts: ['ERC20'],
   },
-  preprocess: {
-    eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat'),
-  },
-  etherscan: {
-    apiKey: env.getEtherscanAPIKeys([
-      'ethereum-ropsten',
-      'ethereum-rinkeby',
-      'ethereum-kovan',
-      'ethereum-goerli',
-      'ethereum',
-      'optimism',
-      'optimism-kovan',
-      'arbitrum',
-      'arbitrum-rinkeby',
-      'polygon',
-      'polygon-mumbai',
-    ]),
-  },
+  // preprocess: {
+  //   eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat'),
+  // },
+
   typechain: {
     outDir: 'typechained',
     target: 'ethers-v5',

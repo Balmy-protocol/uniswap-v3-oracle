@@ -3,11 +3,11 @@ import { getChainId, shouldVerifyContract } from '../utils/deploy';
 import { deploy, getCreationCode } from '@utils/contracts';
 import { ethers } from 'hardhat';
 import { utils } from 'ethers';
-import { StaticOracle__factory } from '@typechained';
+import { StaticOracle__factory } from '../typechained/factories/artifacts/solidity/contracts';
 import { deployThroughDeterministicFactory } from '@mean-finance/deterministic-factory/utils/deployment';
 import { DeployFunction } from '@0xged/hardhat-deploy/dist/types';
 
-const UNISWAP_V3_FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984';
+const UNISWAP_V3_FACTORY_ADDRESS = '0x53B23D577ef40c49Fc30EdAB9287B241D6e7977A';
 
 export const CARDINALITY_PER_MINUTE: { [chainId: string]: number } = {
   '1': 4, // Ethereum: Blocks every ~15s
@@ -25,6 +25,7 @@ export const CARDINALITY_PER_MINUTE: { [chainId: string]: number } = {
 
 const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer } = await hre.getNamedAccounts();
+  // const deployer = (await ethers.getSigners())[0].address;
 
   const chainId = await getChainId(hre);
 
