@@ -1,6 +1,6 @@
 {
   "name": "@mean-finance/uniswap-v3-oracle",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Uniswap V3 Oracle",
   "keywords": [
     "ethereum",
