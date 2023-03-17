@@ -38,7 +38,7 @@ jobs:
         run: yarn compile
 
       - name: Run Slither
-        uses: crytic/slither-action@v0.1.1
+        uses: crytic/slither-action@v0.3.0
         id: slither
         continue-on-error: true
         with:
@@ -48,6 +48,6 @@ jobs:
           sarif: results.sarif
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: ${{ steps.slither.outputs.sarif }}
