@@ -78,6 +78,9 @@ export function getEtherscanAPIKeys(networks: string[]): { [network: string]: st
         case 'ethereum':
           apiKeys['mainnet'] = networkApiKey;
           break;
+        case 'bnb':
+          apiKeys['bsc'] = networkApiKey;
+          break;
         case 'optimism':
           apiKeys['optimisticEthereum'] = networkApiKey;
           break;

@@ -43,6 +43,10 @@ const networks: NetworksUserConfig =
           url: env.getNodeUrl('ethereum'),
           accounts: env.getAccounts('ethereum'),
         },
+        bnb: {
+          url: env.getNodeUrl('bnb'),
+          accounts: env.getAccounts('bnb'),
+        },
         optimism: {
           url: env.getNodeUrl('optimism'),
           accounts: env.getAccounts('optimism'),
@@ -117,6 +121,7 @@ const config: HardhatUserConfig = {
       'arbitrum-rinkeby',
       'polygon',
       'polygon-mumbai',
+      'bnb',
     ]),
   },
   typechain: {
