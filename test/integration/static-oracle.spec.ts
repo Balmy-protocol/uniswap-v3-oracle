@@ -5,11 +5,11 @@ import { expect } from 'chai';
 import { getNodeUrl } from 'utils/env';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { StaticOracle } from '@typechained';
-import { getLastPrice, convertPriceToNumberWithDecimals } from '../utils/defillama';
+import { getLastPrice, convertPriceToNumberWithDecimals, getPrice } from '../utils/defillama';
 import { setTestChainId } from 'utils/deploy';
 import moment from 'moment';
 import { constants, utils } from 'ethers';
-import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory/typechained';
+import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory';
 
 const PRICE_THRESHOLD = 40;
 const PERIOD = moment.duration('3', 'minutes').as('seconds');
@@ -91,8 +91,10 @@ contract('StaticOracle', () => {
       let feedPrice: number;
       given(async () => {
         staticOracle = await forkAndDeploy(chainId, network, blockNumber);
+        // Get timestamp of block
+        const previousBlock = await ethers.provider.getBlock(blockNumber - 1);
         // Get ETH/USD price from coingecko
-        feedPrice = await getLastPrice(network, weth);
+        feedPrice = await getPrice(network, weth, previousBlock.timestamp);
       });
       it('returns correct twap', async () => {
         const [twap] = await staticOracle.quoteAllAvailablePoolsWithTimePeriod(utils.parseEther('1'), weth, usdc, PERIOD);

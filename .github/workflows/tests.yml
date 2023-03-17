@@ -11,22 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out github repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-
       - name: Install node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: "16.x"
+          cache: yarn
+          cache-dependency-path: "**/yarn.lock"
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
@@ -39,22 +33,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out github repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-
       - name: Install node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: "16.x"
+          cache: yarn
+          cache-dependency-path: "**/yarn.lock"
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
@@ -67,22 +55,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out github repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-
       - name: Install node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: "16.x"
+          cache: yarn
+          cache-dependency-path: "**/yarn.lock"
+
+      - name: Cache hardhat network fork
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-hardhat-network-fork
+        with:
+          path: cache/hardhat-network-fork
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('test/integration') }}
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
