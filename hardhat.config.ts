@@ -71,6 +71,10 @@ const networks: NetworksUserConfig =
           url: env.getNodeUrl('polygon-mumbai'),
           accounts: env.getAccounts('polygon-mumbai'),
         },
+        ['base-goerli']: {
+          url: env.getNodeUrl('base-goerli'),
+          accounts: env.getAccounts('base-goerli'),
+        },
       };
 
 const config: HardhatUserConfig = {
@@ -109,20 +113,33 @@ const config: HardhatUserConfig = {
     eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat'),
   },
   etherscan: {
-    apiKey: env.getEtherscanAPIKeys([
-      'ethereum-ropsten',
-      'ethereum-rinkeby',
-      'ethereum-kovan',
-      'ethereum-goerli',
-      'ethereum',
-      'optimism',
-      'optimism-kovan',
-      'arbitrum',
-      'arbitrum-rinkeby',
-      'polygon',
-      'polygon-mumbai',
-      'bnb',
-    ]),
+    apiKey: {
+      ...env.getEtherscanAPIKeys([
+        'ethereum-ropsten',
+        'ethereum-rinkeby',
+        'ethereum-kovan',
+        'ethereum-goerli',
+        'ethereum',
+        'optimism',
+        'optimism-kovan',
+        'arbitrum',
+        'arbitrum-rinkeby',
+        'polygon',
+        'polygon-mumbai',
+        'bnb',
+      ]),
+      'base-goerli': 'PLACEHOLDER_STRING',
+    },
+    customChains: [
+      {
+        network: 'base-goerli',
+        chainId: 84531,
+        urls: {
+          apiURL: 'https://api-goerli.basescan.org/api',
+          browserURL: 'https://goerli.basescan.org',
+        },
+      },
+    ],
   },
   typechain: {
     outDir: 'typechained',

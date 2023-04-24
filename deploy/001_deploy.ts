@@ -17,6 +17,7 @@ const UNISWAP_V3_FACTORY_ADDRESS: { [chainId: string]: string } = {
   '421611': '0x1F98431c8aD98523631AE4a59f267346ea31F984',
   '137': '0x1F98431c8aD98523631AE4a59f267346ea31F984',
   '80001': '0x1F98431c8aD98523631AE4a59f267346ea31F984',
+  '84531': '0x76B071f1c32a3E6Fc73ED7F1b5668Bd51506F5E0',
 };
 
 export const CARDINALITY_PER_MINUTE: { [chainId: string]: number } = {
@@ -32,6 +33,7 @@ export const CARDINALITY_PER_MINUTE: { [chainId: string]: number } = {
   '421611': 60, // Arbitrum Rinkeby: Blocks every ~1s
   '137': 30, // Polygon: Blocks every ~2s
   '80001': 12, // Polygon Mumbai: Blocks every ~5s
+  '84531': 30, // Base Goerli: Blocks every ~2s
 };
 
 const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -51,7 +53,8 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
     },
     log: !process.env.TEST,
     overrides: {
-      gasLimit: 3_000_000,
+      gasLimit: 20_000_000,
+      maxPriorityFeePerGas: 0,
     },
   });
 };
