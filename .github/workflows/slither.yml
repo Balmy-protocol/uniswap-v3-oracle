@@ -39,7 +39,7 @@ jobs:
           solc-version: 0.8.13
           ignore-compile: true
           node-version: 16
-          target: 'solidity/'
+          target: "solidity/"
           sarif: results.sarif
 
       - name: Upload SARIF file
