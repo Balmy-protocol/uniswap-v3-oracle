@@ -54,3 +54,4 @@ Contract deployed at the same address `0xB210CE856631EeEB767eFa666EC7C1C57738d43
 - [Arbitrum Rinkeby](https://testnet.arbiscan.io/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
 - [Polygon Mainnet](https://polygonscan.com/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
 - [Polygon Mumbai](https://mumbai.polygonscan.com/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
+- [Base Goerli](https://goerli.basescan.org/address/0xB210CE856631EeEB767eFa666EC7C1C57738d438)
