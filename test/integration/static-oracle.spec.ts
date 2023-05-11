@@ -89,14 +89,12 @@ contract('StaticOracle', () => {
   }): void {
     context(`on ${network}`, () => {
       let feedPrice: number;
-      let previousBlockTimestamp: number;
       given(async () => {
         staticOracle = await forkAndDeploy(chainId, network, blockNumber);
         // Get timestamp of block
         const previousBlock = await ethers.provider.getBlock(blockNumber - 1);
-        previousBlockTimestamp = previousBlock.timestamp;
         // Get ETH/USD price from coingecko
-        feedPrice = await getPrice(network, weth, previousBlockTimestamp);
+        feedPrice = await getPrice(network, weth, previousBlock.timestamp);
       });
       it('returns correct twap', async () => {
         const [twap] = await staticOracle.quoteAllAvailablePoolsWithTimePeriod(utils.parseEther('1'), weth, usdc, PERIOD);
@@ -106,8 +104,9 @@ contract('StaticOracle', () => {
         );
       });
       it('returns correct ofsetted twap', async () => {
-        await ethers.provider.send('evm_increaseTime', [PERIOD]);
-        const [twap] = await staticOracle.quoteAllAvailablePoolsWithOffsettedTimePeriod(utils.parseEther('1'), weth, usdc, PERIOD, PERIOD);
+        const OFFSET = moment.duration('1', 'hours').as('seconds');
+        await ethers.provider.send('evm_increaseTime', [OFFSET]);
+        const [twap] = await staticOracle.quoteAllAvailablePoolsWithOffsettedTimePeriod(utils.parseEther('1'), weth, usdc, PERIOD, OFFSET);
         expect(twap).to.be.within(
           convertPriceToNumberWithDecimals(feedPrice - PRICE_THRESHOLD, 6),
           convertPriceToNumberWithDecimals(feedPrice + PRICE_THRESHOLD, 6)
