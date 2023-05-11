@@ -132,7 +132,6 @@ contract('StaticOracle', () => {
     await deterministicFactory.connect(admin).grantRole(DEPLOYER_ROLE, deployer.address);
     // Execute deployment script
     await deployments.fixture(['StaticOracle'], { keepExistingDeployments: false });
-    const staticOracle = await ethers.getContract<StaticOracle>('StaticOracle');
-    return staticOracle;
+    return await ethers.getContract<StaticOracle>('StaticOracle');
   }
 });
