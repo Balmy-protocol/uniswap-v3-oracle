@@ -5,7 +5,6 @@ import { expect } from 'chai';
 import { getNodeUrl } from 'utils/env';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { StaticOracle } from '@typechained';
-import { StaticOraclePlus } from '@typechained';
 import { getLastPrice, convertPriceToNumberWithDecimals, getPrice } from '../utils/defillama';
 import { setTestChainId } from 'utils/deploy';
 import moment from 'moment';
@@ -20,7 +19,6 @@ const DEPLOYER_ROLE = utils.keccak256(utils.toUtf8Bytes('DEPLOYER_ROLE'));
 contract('StaticOracle', () => {
   let deployer: SignerWithAddress;
   let staticOracle: StaticOracle;
-  let staticOraclePlus: StaticOraclePlus;
 
   before(async () => {
     const { deployer: deployerAddress } = await hre.getNamedAccounts();
@@ -29,7 +27,7 @@ contract('StaticOracle', () => {
 
   describe(`getAllPoolsForPair`, () => {
     given(async () => {
-      ({ staticOracle, staticOraclePlus } = await forkAndDeploy(1, 'ethereum', 14976820));
+      staticOracle = await forkAndDeploy(1, 'ethereum', 14976820);
     });
     it('all pools are returned correctly', async () => {
       // Checking WETH/USDC pair
@@ -93,7 +91,7 @@ contract('StaticOracle', () => {
       let feedPrice: number;
       let previousBlockTimestamp: number;
       given(async () => {
-        ({ staticOracle, staticOraclePlus } = await forkAndDeploy(chainId, network, blockNumber));
+        staticOracle = await forkAndDeploy(chainId, network, blockNumber);
         // Get timestamp of block
         const previousBlock = await ethers.provider.getBlock(blockNumber - 1);
         previousBlockTimestamp = previousBlock.timestamp;
@@ -101,7 +99,7 @@ contract('StaticOracle', () => {
         feedPrice = await getPrice(network, weth, previousBlockTimestamp);
       });
       it('returns correct twap', async () => {
-        const [twap] = await staticOraclePlus.quoteAllAvailablePoolsWithTimePeriod(utils.parseEther('1'), weth, usdc, PERIOD);
+        const [twap] = await staticOracle.quoteAllAvailablePoolsWithTimePeriod(utils.parseEther('1'), weth, usdc, PERIOD);
         expect(twap).to.be.within(
           convertPriceToNumberWithDecimals(feedPrice - PRICE_THRESHOLD, 6),
           convertPriceToNumberWithDecimals(feedPrice + PRICE_THRESHOLD, 6)
@@ -109,7 +107,7 @@ contract('StaticOracle', () => {
       });
       it('returns correct ofsetted twap', async () => {
         await ethers.provider.send('evm_increaseTime', [PERIOD]);
-        const [twap] = await staticOraclePlus.quoteAllAvailablePoolsWithTargetPeriod(utils.parseEther('1'), weth, usdc, PERIOD, PERIOD);
+        const [twap] = await staticOracle.quoteAllAvailablePoolsWithOffsettedTimePeriod(utils.parseEther('1'), weth, usdc, PERIOD, PERIOD);
         expect(twap).to.be.within(
           convertPriceToNumberWithDecimals(feedPrice - PRICE_THRESHOLD, 6),
           convertPriceToNumberWithDecimals(feedPrice + PRICE_THRESHOLD, 6)
@@ -118,11 +116,7 @@ contract('StaticOracle', () => {
     });
   }
 
-  async function forkAndDeploy(
-    chainId: number,
-    chainName: string,
-    blockNumber: number
-  ): Promise<{ staticOracle: StaticOracle; staticOraclePlus: StaticOraclePlus }> {
+  async function forkAndDeploy(chainId: number, chainName: string, blockNumber: number): Promise<StaticOracle> {
     // Set fork of network
     await setTestChainId(chainId);
     await evm.reset({
@@ -140,7 +134,6 @@ contract('StaticOracle', () => {
     // Execute deployment script
     await deployments.fixture(['StaticOracle'], { keepExistingDeployments: false });
     const staticOracle = await ethers.getContract<StaticOracle>('StaticOracle');
-    const staticOraclePlus = await ethers.getContract<StaticOraclePlus>('StaticOraclePlus');
-    return { staticOracle, staticOraclePlus };
+    return staticOracle;
   }
 });

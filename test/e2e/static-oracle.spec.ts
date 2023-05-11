@@ -14,8 +14,6 @@ import {
   IUniswapV3Factory__factory,
   StaticOracleMock__factory,
   StaticOracleMock,
-  StaticOraclePlus,
-  StaticOraclePlus__factory,
 } from '@typechained';
 import moment from 'moment';
 import { FeeAmount, encodePriceSqrt, getCreate2Address, getMinTick, TICK_SPACINGS, getMaxTick } from '@utils/uniswap';
@@ -25,7 +23,6 @@ contract('StaticOracle', () => {
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
   let staticOracle: StaticOracleMock;
-  let staticOraclePlus: StaticOraclePlus;
   let snapshotId: string;
 
   let tokenA: ERC20Mock;
@@ -62,12 +59,8 @@ contract('StaticOracle', () => {
     const staticOracleFactory = (await ethers.getContractFactory(
       'solidity/contracts/mocks/StaticOracle.sol:StaticOracleMock'
     )) as StaticOracleMock__factory;
-    const staticOraclePlusFactory = (await ethers.getContractFactory(
-      'solidity/contracts/StaticOraclePlus.sol:StaticOraclePlus'
-    )) as StaticOraclePlus__factory;
 
     staticOracle = await staticOracleFactory.deploy(factory.address, 60);
-    staticOraclePlus = await staticOraclePlusFactory.deploy(factory.address, 60);
 
     const tokenFactory = (await ethers.getContractFactory('solidity/contracts/mocks/ERC20.sol:ERC20Mock')) as ERC20Mock__factory;
 
@@ -296,7 +289,7 @@ contract('StaticOracle', () => {
         });
         then(`tx gets reverted with 'No defined pools' error`, async () => {
           await expect(
-            staticOraclePlus.quoteAllAvailablePoolsWithOffsettedTimePeriod(utils.parseEther('1'), tokenA.address, tokenB.address, PERIOD, PERIOD)
+            staticOracle.quoteAllAvailablePoolsWithOffsettedTimePeriod(utils.parseEther('1'), tokenA.address, tokenB.address, PERIOD, PERIOD)
           ).to.be.revertedWith('No defined pools');
         });
       });
@@ -314,7 +307,7 @@ contract('StaticOracle', () => {
           });
         });
         then('queries the pool', async () => {
-          const [, quotedPools] = await staticOraclePlus.callStatic.quoteAllAvailablePoolsWithOffsettedTimePeriod(
+          const [, quotedPools] = await staticOracle.callStatic.quoteAllAvailablePoolsWithOffsettedTimePeriod(
             utils.parseEther('1'),
             tokenA.address,
             tokenB.address,
@@ -345,7 +338,7 @@ contract('StaticOracle', () => {
         });
         then(`tx gets reverted with 'No defined pools' error`, async () => {
           await expect(
-            staticOraclePlus.quoteAllAvailablePoolsWithOffsettedTimePeriod(
+            staticOracle.quoteAllAvailablePoolsWithOffsettedTimePeriod(
               utils.parseEther('1'),
               tokenA.address,
               tokenB.address,
@@ -377,7 +370,7 @@ contract('StaticOracle', () => {
           });
         });
         then('queries the correct pools', async () => {
-          const [, quotedPools] = await staticOraclePlus.callStatic.quoteAllAvailablePoolsWithOffsettedTimePeriod(
+          const [, quotedPools] = await staticOracle.callStatic.quoteAllAvailablePoolsWithOffsettedTimePeriod(
             utils.parseEther('1'),
             tokenA.address,
             tokenB.address,
@@ -463,7 +456,7 @@ contract('StaticOracle', () => {
     when('quoting fee tiers that do not have pools', () => {
       then(`tx gets reverted with 'Given tier does not have pool' error`, async () => {
         await expect(
-          staticOraclePlus.quoteSpecificFeeTiersWithOffsettedTimePeriod(
+          staticOracle.quoteSpecificFeeTiersWithOffsettedTimePeriod(
             utils.parseEther('1'),
             tokenA.address,
             tokenB.address,
@@ -494,7 +487,7 @@ contract('StaticOracle', () => {
       // FIX: Does that error message make sense in this case?
       then(`tx gets reverted with 'Given tier does not have pool' error`, async () => {
         await expect(
-          staticOraclePlus.quoteSpecificFeeTiersWithOffsettedTimePeriod(
+          staticOracle.quoteSpecificFeeTiersWithOffsettedTimePeriod(
             utils.parseEther('1'),
             tokenA.address,
             tokenB.address,
@@ -524,7 +517,7 @@ contract('StaticOracle', () => {
         });
       });
       then('correct pools get queried', async () => {
-        const [, quotedPools] = await staticOraclePlus.callStatic.quoteSpecificFeeTiersWithOffsettedTimePeriod(
+        const [, quotedPools] = await staticOracle.callStatic.quoteSpecificFeeTiersWithOffsettedTimePeriod(
           utils.parseEther('1'),
           tokenA.address,
           tokenB.address,

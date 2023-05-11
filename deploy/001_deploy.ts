@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { getChainId, shouldVerifyContract } from '../utils/deploy';
-import { StaticOracle__factory, StaticOraclePlus__factory } from '@typechained';
+import { StaticOracle__factory } from '@typechained';
 import { deployThroughDeterministicFactory } from '@mean-finance/deterministic-factory/utils/deployment';
 import { DeployFunction } from '@0xged/hardhat-deploy/dist/types';
 
@@ -44,26 +44,9 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
   await deployThroughDeterministicFactory({
     deployer,
     name: 'StaticOracle',
-    salt: 'MF-UniswapV3-StaticOracle-V1',
+    salt: 'MF-UniswapV3-StaticOracle-V1+',
     contract: 'solidity/contracts/StaticOracle.sol:StaticOracle',
     bytecode: StaticOracle__factory.bytecode,
-    constructorArgs: {
-      types: ['address', 'uint8'],
-      values: [UNISWAP_V3_FACTORY_ADDRESS[chainId], CARDINALITY_PER_MINUTE[chainId]],
-    },
-    log: !process.env.TEST,
-    overrides: {
-      gasLimit: 20_000_000,
-      maxPriorityFeePerGas: 0,
-    },
-  });
-
-  await deployThroughDeterministicFactory({
-    deployer,
-    name: 'StaticOraclePlus',
-    salt: 'MF-UniswapV3-StaticOracle-V1+',
-    contract: 'solidity/contracts/StaticOraclePlus.sol:StaticOraclePlus',
-    bytecode: StaticOraclePlus__factory.bytecode,
     constructorArgs: {
       types: ['address', 'uint8'],
       values: [UNISWAP_V3_FACTORY_ADDRESS[chainId], CARDINALITY_PER_MINUTE[chainId]],

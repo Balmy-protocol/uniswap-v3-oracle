@@ -9,7 +9,7 @@ library OracleLibraryPlus {
   /// @param _offset Number of seconds ago to start the TWAP calculation
   /// @return _arithmeticMeanTick The arithmetic mean tick from _secondsAgos[0] to _secondsAgos[1]
   /// @return _harmonicMeanLiquidity The harmonic mean liquidity from _secondsAgos[0] to _secondsAgos[1]
-  function consult(
+  function consultOffsetted(
     address _pool,
     uint32 _twapLength,
     uint32 _offset

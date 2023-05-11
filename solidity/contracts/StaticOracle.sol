@@ -86,6 +86,44 @@ contract StaticOracle is IStaticOracle {
   }
 
   /// @inheritdoc IStaticOracle
+  function quoteAllAvailablePoolsWithOffsettedTimePeriod(
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    uint32 _period,
+    uint32 _offset
+  ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
+    _queriedPools = _getQueryablePoolsForTiers(_baseToken, _quoteToken, _offset + _period);
+    _quoteAmount = _quoteOffsetted(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period, _offset);
+  }
+
+  /// @inheritdoc IStaticOracle
+  function quoteSpecificFeeTiersWithOffsettedTimePeriod(
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    uint24[] calldata _feeTiers,
+    uint32 _period,
+    uint32 _offset
+  ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
+    _queriedPools = _getPoolsForTiers(_baseToken, _quoteToken, _feeTiers);
+    require(_queriedPools.length == _feeTiers.length, 'Given tier does not have pool');
+    _quoteAmount = _quoteOffsetted(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period, _offset);
+  }
+
+  /// @inheritdoc IStaticOracle
+  function quoteSpecificPoolsWithOffsettedTimePeriod(
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    address[] calldata _pools,
+    uint32 _period,
+    uint32 _offset
+  ) external view override returns (uint256 _quoteAmount) {
+    return _quoteOffsetted(_baseAmount, _baseToken, _quoteToken, _pools, _period, _offset);
+  }
+
+  /// @inheritdoc IStaticOracle
   function prepareAllAvailablePoolsWithTimePeriod(
     address _tokenA,
     address _tokenB,
@@ -169,6 +207,24 @@ contract StaticOracle is IStaticOracle {
       (_tickData[i].tick, _tickData[i].weight) = _period > 0
         ? OracleLibrary.consult(_pools[i], _period)
         : OracleLibrary.getBlockStartingTickAndLiquidity(_pools[i]);
+    }
+    int24 _weightedTick = _tickData.length == 1 ? _tickData[0].tick : OracleLibrary.getWeightedArithmeticMeanTick(_tickData);
+    return OracleLibrary.getQuoteAtTick(_weightedTick, _baseAmount, _baseToken, _quoteToken);
+  }
+
+  function _quoteOffsetted(
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    address[] memory _pools,
+    uint32 _period,
+    uint32 _offset
+  ) internal view returns (uint256 _quoteAmount) {
+    require(_pools.length > 0, 'No defined pools');
+    OracleLibrary.WeightedTickData[] memory _tickData = new OracleLibrary.WeightedTickData[](_pools.length);
+
+    for (uint256 i; i < _pools.length; i++) {
+      (_tickData[i].tick, _tickData[i].weight) = OracleLibraryPlus.consultOffsetted(_pools[i], _period, _offset);
     }
     int24 _weightedTick = _tickData.length == 1 ? _tickData[0].tick : OracleLibrary.getWeightedArithmeticMeanTick(_tickData);
     return OracleLibrary.getQuoteAtTick(_weightedTick, _baseAmount, _baseToken, _quoteToken);
