@@ -13,15 +13,17 @@ interface IStaticOraclePlus is IStaticOracle {
    * @param baseAmount Amount of token to be converted
    * @param baseToken Address of an ERC20 token contract used as the baseAmount denomination
    * @param quoteToken Address of an ERC20 token contract used as the quoteAmount denomination
-   * @param targetPeriod Array of seconds from which to calculate the TWAP
+   * @param period Length in seconds of the TWAP calculation length
+   * @param offset Number of seconds ago to start the TWAP calculation
    * @return quoteAmount Amount of quoteToken received for baseAmount of baseToken
    * @return queriedPools The pools that were queried to calculate the quote
    */
-  function quoteAllAvailablePoolsWithTargetPeriod(
+  function quoteAllAvailablePoolsWithOffsettedTimePeriod(
     uint128 baseAmount,
     address baseToken,
     address quoteToken,
-    uint32[] calldata targetPeriod
+    uint32 period,
+    uint32 offset
   ) external view returns (uint256 quoteAmount, address[] memory queriedPools);
 
   /**
@@ -32,16 +34,18 @@ interface IStaticOraclePlus is IStaticOracle {
    * @param baseToken Address of an ERC20 token contract used as the baseAmount denomination
    * @param quoteToken Address of an ERC20 token contract used as the quoteAmount denomination
    * @param feeTiers The fee tiers to consider when calculating the quote
-   * @param targetPeriod Array of seconds from which to calculate the TWAP
+   * @param period Length in seconds of the TWAP calculation length
+   * @param offset Number of seconds ago to start the TWAP calculation
    * @return quoteAmount Amount of quoteToken received for baseAmount of baseToken
    * @return queriedPools The pools that were queried to calculate the quote
    */
-  function quoteSpecificFeeTiersWithTargetPeriod(
+  function quoteSpecificFeeTiersWithOffsettedTimePeriod(
     uint128 baseAmount,
     address baseToken,
     address quoteToken,
     uint24[] calldata feeTiers,
-    uint32[] calldata targetPeriod
+    uint32 period,
+    uint32 offset
   ) external view returns (uint256 quoteAmount, address[] memory queriedPools);
 
   /**
@@ -51,14 +55,16 @@ interface IStaticOraclePlus is IStaticOracle {
    * @param baseToken Address of an ERC20 token contract used as the baseAmount denomination
    * @param quoteToken Address of an ERC20 token contract used as the quoteAmount denomination
    * @param pools The pools to consider when calculating the quote
-   * @param targetPeriod Array of seconds from which to calculate the TWAP
+   * @param period Length in seconds of the TWAP calculation length
+   * @param offset Number of seconds ago to start the TWAP calculation
    * @return quoteAmount Amount of quoteToken received for baseAmount of baseToken
    */
-  function quoteSpecificPoolsWithTargetPeriod(
+  function quoteSpecificPoolsWithOffsettedTimePeriod(
     uint128 baseAmount,
     address baseToken,
     address quoteToken,
     address[] calldata pools,
-    uint32[] calldata targetPeriod
+    uint32 period,
+    uint32 offset
   ) external view returns (uint256 quoteAmount);
 }
