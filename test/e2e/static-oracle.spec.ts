@@ -271,7 +271,7 @@ contract('StaticOracle', () => {
     });
   });
 
-  describe.only('quoteAllAvailablePoolsWithOffsettedTimePeriod', () => {
+  describe('quoteAllAvailablePoolsWithOffsettedTimePeriod', () => {
     let pools: { [fees: number]: string } = {};
     when('there is a single pool', () => {
       context('and it doesnt have an observation oldest than the period', () => {
@@ -452,7 +452,7 @@ contract('StaticOracle', () => {
     });
   });
 
-  describe.only('quoteSpecificFeeTiersWithOfsettedTimePeriod', () => {
+  describe('quoteSpecificFeeTiersWithOfsettedTimePeriod', () => {
     when('quoting fee tiers that do not have pools', () => {
       then(`tx gets reverted with 'Given tier does not have pool' error`, async () => {
         await expect(
