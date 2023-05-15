@@ -58,7 +58,7 @@ contract StaticOracle is IStaticOracle {
     uint32 _period
   ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
     _queriedPools = _getQueryablePoolsForTiers(_baseToken, _quoteToken, _period);
-    _quoteAmount = _quote(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period);
+    _quoteAmount = _quote(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period, 0);
   }
 
   /// @inheritdoc IStaticOracle
@@ -71,7 +71,7 @@ contract StaticOracle is IStaticOracle {
   ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
     _queriedPools = _getPoolsForTiers(_baseToken, _quoteToken, _feeTiers);
     require(_queriedPools.length == _feeTiers.length, 'Given tier does not have pool');
-    _quoteAmount = _quote(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period);
+    _quoteAmount = _quote(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period, 0);
   }
 
   /// @inheritdoc IStaticOracle
@@ -82,7 +82,7 @@ contract StaticOracle is IStaticOracle {
     address[] calldata _pools,
     uint32 _period
   ) external view override returns (uint256 _quoteAmount) {
-    return _quote(_baseAmount, _baseToken, _quoteToken, _pools, _period);
+    return _quote(_baseAmount, _baseToken, _quoteToken, _pools, _period, 0);
   }
 
   /// @inheritdoc IStaticOracle
@@ -94,7 +94,7 @@ contract StaticOracle is IStaticOracle {
     uint32 _offset
   ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
     _queriedPools = _getQueryablePoolsForTiers(_baseToken, _quoteToken, _offset + _period);
-    _quoteAmount = _quoteOffsetted(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period, _offset);
+    _quoteAmount = _quote(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period, _offset);
   }
 
   /// @inheritdoc IStaticOracle
@@ -108,7 +108,7 @@ contract StaticOracle is IStaticOracle {
   ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
     _queriedPools = _getPoolsForTiers(_baseToken, _quoteToken, _feeTiers);
     require(_queriedPools.length == _feeTiers.length, 'Given tier does not have pool');
-    _quoteAmount = _quoteOffsetted(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period, _offset);
+    _quoteAmount = _quote(_baseAmount, _baseToken, _quoteToken, _queriedPools, _period, _offset);
   }
 
   /// @inheritdoc IStaticOracle
@@ -120,7 +120,7 @@ contract StaticOracle is IStaticOracle {
     uint32 _period,
     uint32 _offset
   ) external view override returns (uint256 _quoteAmount) {
-    return _quoteOffsetted(_baseAmount, _baseToken, _quoteToken, _pools, _period, _offset);
+    return _quote(_baseAmount, _baseToken, _quoteToken, _pools, _period, _offset);
   }
 
   /// @inheritdoc IStaticOracle
@@ -199,32 +199,19 @@ contract StaticOracle is IStaticOracle {
     address _baseToken,
     address _quoteToken,
     address[] memory _pools,
-    uint32 _period
-  ) internal view returns (uint256 _quoteAmount) {
-    require(_pools.length > 0, 'No defined pools');
-    OracleLibrary.WeightedTickData[] memory _tickData = new OracleLibrary.WeightedTickData[](_pools.length);
-    for (uint256 i; i < _pools.length; i++) {
-      (_tickData[i].tick, _tickData[i].weight) = _period > 0
-        ? OracleLibrary.consult(_pools[i], _period)
-        : OracleLibrary.getBlockStartingTickAndLiquidity(_pools[i]);
-    }
-    int24 _weightedTick = _tickData.length == 1 ? _tickData[0].tick : OracleLibrary.getWeightedArithmeticMeanTick(_tickData);
-    return OracleLibrary.getQuoteAtTick(_weightedTick, _baseAmount, _baseToken, _quoteToken);
-  }
-
-  function _quoteOffsetted(
-    uint128 _baseAmount,
-    address _baseToken,
-    address _quoteToken,
-    address[] memory _pools,
     uint32 _period,
     uint32 _offset
   ) internal view returns (uint256 _quoteAmount) {
     require(_pools.length > 0, 'No defined pools');
     OracleLibrary.WeightedTickData[] memory _tickData = new OracleLibrary.WeightedTickData[](_pools.length);
 
+    // If period is 0 but offsetted, we force a 1s twap calculation
+    _period = _period == 0 && _offset > 0 ? 1 : _period;
+
     for (uint256 i; i < _pools.length; i++) {
-      (_tickData[i].tick, _tickData[i].weight) = OracleLibraryPlus.consultOffsetted(_pools[i], _period, _offset);
+      (_tickData[i].tick, _tickData[i].weight) = _period > 0
+        ? OracleLibraryPlus.consultOffsetted(_pools[i], _period, _offset)
+        : OracleLibrary.getBlockStartingTickAndLiquidity(_pools[i]);
     }
     int24 _weightedTick = _tickData.length == 1 ? _tickData[0].tick : OracleLibrary.getWeightedArithmeticMeanTick(_tickData);
     return OracleLibrary.getQuoteAtTick(_weightedTick, _baseAmount, _baseToken, _quoteToken);
