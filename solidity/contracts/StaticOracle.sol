@@ -57,7 +57,7 @@ contract StaticOracle is IStaticOracle {
     address _quoteToken,
     uint32 _period
   ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
-    quoteAllAvailablePoolsWithOffsettedTimePeriod(_baseAmount, _baseToken, _quoteToken, _period, 0);
+    return quoteAllAvailablePoolsWithOffsettedTimePeriod(_baseAmount, _baseToken, _quoteToken, _period, 0);
   }
 
   /// @inheritdoc IStaticOracle
@@ -68,7 +68,7 @@ contract StaticOracle is IStaticOracle {
     uint24[] calldata _feeTiers,
     uint32 _period
   ) external view override returns (uint256 _quoteAmount, address[] memory _queriedPools) {
-    quoteSpecificFeeTiersWithOffsettedTimePeriod(_baseAmount, _baseToken, _quoteToken, _feeTiers, _period, 0);
+    return quoteSpecificFeeTiersWithOffsettedTimePeriod(_baseAmount, _baseToken, _quoteToken, _feeTiers, _period, 0);
   }
 
   /// @inheritdoc IStaticOracle
@@ -79,7 +79,7 @@ contract StaticOracle is IStaticOracle {
     address[] calldata _pools,
     uint32 _period
   ) external view override returns (uint256 _quoteAmount) {
-    quoteSpecificPoolsWithOffsettedTimePeriod(_baseAmount, _baseToken, _quoteToken, _pools, _period, 0);
+    return quoteSpecificPoolsWithOffsettedTimePeriod(_baseAmount, _baseToken, _quoteToken, _pools, _period, 0);
   }
 
   /// @inheritdoc IStaticOracle
