@@ -281,6 +281,13 @@ contract('StaticOracle @skip-on-coverage', () => {
         await expect(staticOracle.quote(utils.parseEther('1'), TOKEN_A, TOKEN_B, [], 100)).to.be.revertedWith('Given tier does not have pool');
       });
     });
+    when('quoting an offsetted spot price', () => {
+      then('tx reverts with message', async () => {
+        await expect(staticOracle.quoteOffsetted(utils.parseEther('1'), TOKEN_A, TOKEN_B, [uniswapV3Pool.address], 0, 100)).to.be.revertedWith(
+          'Cannot query an offsetted spot quote'
+        );
+      });
+    });
   });
 
   describe('_getQueryablePoolsForTiers', () => {

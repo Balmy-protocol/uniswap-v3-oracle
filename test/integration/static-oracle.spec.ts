@@ -103,6 +103,15 @@ contract('StaticOracle', () => {
           convertPriceToNumberWithDecimals(feedPrice + PRICE_THRESHOLD, 6)
         );
       });
+      it('returns correct ofsetted twap', async () => {
+        const OFFSET = moment.duration('1', 'hours').as('seconds');
+        await ethers.provider.send('evm_increaseTime', [OFFSET]);
+        const [twap] = await staticOracle.quoteAllAvailablePoolsWithOffsettedTimePeriod(utils.parseEther('1'), weth, usdc, PERIOD, OFFSET);
+        expect(twap).to.be.within(
+          convertPriceToNumberWithDecimals(feedPrice - PRICE_THRESHOLD, 6),
+          convertPriceToNumberWithDecimals(feedPrice + PRICE_THRESHOLD, 6)
+        );
+      });
     });
   }
 

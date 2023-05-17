@@ -44,7 +44,7 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
   await deployThroughDeterministicFactory({
     deployer,
     name: 'StaticOracle',
-    salt: 'MF-UniswapV3-StaticOracle-V1',
+    salt: 'MF-UniswapV3-StaticOracle-V2',
     contract: 'solidity/contracts/StaticOracle.sol:StaticOracle',
     bytecode: StaticOracle__factory.bytecode,
     constructorArgs: {

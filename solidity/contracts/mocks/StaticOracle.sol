@@ -29,7 +29,18 @@ contract StaticOracleMock is StaticOracle {
     address[] memory _pools,
     uint32 _period
   ) external view returns (uint256 _quoteAmount) {
-    return _quote(_baseAmount, _baseToken, _quoteToken, _pools, _period);
+    return _quote(_baseAmount, _baseToken, _quoteToken, _pools, _period, 0);
+  }
+
+  function quoteOffsetted(
+    uint128 _baseAmount,
+    address _baseToken,
+    address _quoteToken,
+    address[] memory _pools,
+    uint32 _period,
+    uint32 _offset
+  ) external view returns (uint256 _quoteAmount) {
+    return _quote(_baseAmount, _baseToken, _quoteToken, _pools, _period, _offset);
   }
 
   function getQueryablePoolsForTiers(

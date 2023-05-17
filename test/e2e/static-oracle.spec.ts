@@ -271,6 +271,118 @@ contract('StaticOracle', () => {
     });
   });
 
+  describe('quoteAllAvailablePoolsWithOffsettedTimePeriod', () => {
+    let pools: { [fees: number]: string } = {};
+    when('there is a single pool', () => {
+      context('and it doesnt have an observation oldest than the period', () => {
+        given(async () => {
+          pools = await createPoolsWithSupport({
+            tokenA: tokenA.address,
+            tokenB: tokenB.address,
+            feesAndSupportingPeriod: [
+              {
+                fee: FeeAmount.MEDIUM,
+                supportPeriod: false,
+              },
+            ],
+          });
+        });
+        then(`tx gets reverted with 'No defined pools' error`, async () => {
+          await expect(
+            staticOracle.quoteAllAvailablePoolsWithOffsettedTimePeriod(utils.parseEther('1'), tokenA.address, tokenB.address, PERIOD, PERIOD)
+          ).to.be.revertedWith('No defined pools');
+        });
+      });
+      context('and it has an observation oldest than the period', () => {
+        given(async () => {
+          pools = await createPoolsWithSupport({
+            tokenA: tokenA.address,
+            tokenB: tokenB.address,
+            feesAndSupportingPeriod: [
+              {
+                fee: FeeAmount.MEDIUM,
+                supportPeriod: true,
+              },
+            ],
+          });
+        });
+        then('queries the pool', async () => {
+          const [, quotedPools] = await staticOracle.callStatic.quoteAllAvailablePoolsWithOffsettedTimePeriod(
+            utils.parseEther('1'),
+            tokenA.address,
+            tokenB.address,
+            PERIOD / 2,
+            PERIOD / 2
+          );
+          expect(quotedPools).to.eql([pools[FeeAmount.MEDIUM]]);
+        });
+      });
+    });
+    when('there are multiple pools', () => {
+      context('and none have an observation oldest than the period', () => {
+        given(async () => {
+          pools = await createPoolsWithSupport({
+            tokenA: tokenA.address,
+            tokenB: tokenB.address,
+            feesAndSupportingPeriod: [
+              {
+                fee: FeeAmount.LOW,
+                supportPeriod: false,
+              },
+              {
+                fee: FeeAmount.MEDIUM,
+                supportPeriod: false,
+              },
+            ],
+          });
+        });
+        then(`tx gets reverted with 'No defined pools' error`, async () => {
+          await expect(
+            staticOracle.quoteAllAvailablePoolsWithOffsettedTimePeriod(
+              utils.parseEther('1'),
+              tokenA.address,
+              tokenB.address,
+              PERIOD / 2,
+              PERIOD / 2
+            )
+          ).to.be.revertedWith('No defined pools');
+        });
+      });
+      context('and some have an observation oldest than the period', () => {
+        given(async () => {
+          pools = await createPoolsWithSupport({
+            tokenA: tokenA.address,
+            tokenB: tokenB.address,
+            feesAndSupportingPeriod: [
+              {
+                fee: FeeAmount.LOW,
+                supportPeriod: true,
+              },
+              {
+                fee: FeeAmount.MEDIUM,
+                supportPeriod: false,
+              },
+              {
+                fee: FeeAmount.HIGH,
+                supportPeriod: true,
+              },
+            ],
+          });
+        });
+        then('queries the correct pools', async () => {
+          const [, quotedPools] = await staticOracle.callStatic.quoteAllAvailablePoolsWithOffsettedTimePeriod(
+            utils.parseEther('1'),
+            tokenA.address,
+            tokenB.address,
+            PERIOD / 2,
+            PERIOD / 2
+          );
+          expect(quotedPools).to.eql([pools[FeeAmount.LOW], pools[FeeAmount.HIGH]]);
+        });
+      });
+    });
+  });
+
   describe('quoteSpecificFeeTiersWithTimePeriod', () => {
     when('quoting fee tiers that do not have pools', () => {
       then(`tx gets reverted with 'Given tier does not have pool' error`, async () => {
@@ -334,6 +446,84 @@ contract('StaticOracle', () => {
           tokenB.address,
           [FeeAmount.LOW, FeeAmount.MEDIUM],
           PERIOD
+        );
+        expect(quotedPools).to.eql([pools[FeeAmount.LOW], pools[FeeAmount.MEDIUM]]);
+      });
+    });
+  });
+
+  describe('quoteSpecificFeeTiersWithOfsettedTimePeriod', () => {
+    when('quoting fee tiers that do not have pools', () => {
+      then(`tx gets reverted with 'Given tier does not have pool' error`, async () => {
+        await expect(
+          staticOracle.quoteSpecificFeeTiersWithOffsettedTimePeriod(
+            utils.parseEther('1'),
+            tokenA.address,
+            tokenB.address,
+            [FeeAmount.LOW],
+            PERIOD / 2,
+            PERIOD / 2
+          )
+        ).to.be.rejectedWith('Given tier does not have pool');
+      });
+    });
+    when('quoting fee tiers that have pools but do not support period', () => {
+      given(async () => {
+        await createPoolsWithSupport({
+          tokenA: tokenA.address,
+          tokenB: tokenB.address,
+          feesAndSupportingPeriod: [
+            {
+              fee: FeeAmount.LOW,
+              supportPeriod: false,
+            },
+            {
+              fee: FeeAmount.MEDIUM,
+              supportPeriod: true,
+            },
+          ],
+        });
+      });
+      // FIX: Does that error message make sense in this case?
+      then(`tx gets reverted with 'Given tier does not have pool' error`, async () => {
+        await expect(
+          staticOracle.quoteSpecificFeeTiersWithOffsettedTimePeriod(
+            utils.parseEther('1'),
+            tokenA.address,
+            tokenB.address,
+            [FeeAmount.LOW, FeeAmount.HIGH],
+            PERIOD / 2,
+            PERIOD / 2
+          )
+        ).to.be.rejectedWith('Given tier does not have pool');
+      });
+    });
+    when('quoting fee tiers that do have pools that support period', () => {
+      let pools: { [fees: number]: string } = {};
+      given(async () => {
+        pools = await createPoolsWithSupport({
+          tokenA: tokenA.address,
+          tokenB: tokenB.address,
+          feesAndSupportingPeriod: [
+            {
+              fee: FeeAmount.LOW,
+              supportPeriod: true,
+            },
+            {
+              fee: FeeAmount.MEDIUM,
+              supportPeriod: true,
+            },
+          ],
+        });
+      });
+      then('correct pools get queried', async () => {
+        const [, quotedPools] = await staticOracle.callStatic.quoteSpecificFeeTiersWithOffsettedTimePeriod(
+          utils.parseEther('1'),
+          tokenA.address,
+          tokenB.address,
+          [FeeAmount.LOW, FeeAmount.MEDIUM],
+          PERIOD / 2,
+          PERIOD / 2
         );
         expect(quotedPools).to.eql([pools[FeeAmount.LOW], pools[FeeAmount.MEDIUM]]);
       });
