@@ -18,7 +18,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v3
         with:
-          node-version: "16.x"
+          node-version: "18.x"
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
 
@@ -40,7 +40,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v3
         with:
-          node-version: "16.x"
+          node-version: "18.x"
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
 
@@ -62,7 +62,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v3
         with:
-          node-version: "16.x"
+          node-version: "18.x"
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
 
