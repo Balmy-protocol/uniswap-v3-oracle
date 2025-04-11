@@ -1,5 +1,5 @@
 {
-  "name": "@mean-finance/uniswap-v3-oracle",
+  "name": "@balmy/uniswap-v3-oracle",
   "version": "1.0.3",
   "description": "Uniswap V3 Oracle",
   "keywords": [
@@ -14,7 +14,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mean-finance/uniswap-v3-oracle.git"
+    "url": "git+https://github.com/Balmy-protocol/uniswap-v3-oracle.git"
   },
   "license": "AGPL-3.0-only",
   "contributors": [

@@ -1,6 +1,6 @@
-[![Lint](https://github.com/Mean-Finance/uniswap-v3-oracle/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/Mean-Finance/uniswap-v3-oracle/actions/workflows/lint.yml)
-[![Tests](https://github.com/Mean-Finance/uniswap-v3-oracle/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Mean-Finance/uniswap-v3-oracle/actions/workflows/tests.yml)
-[![Slither Analysis](https://github.com/Mean-Finance/uniswap-v3-oracle/actions/workflows/slither.yml/badge.svg?branch=main)](https://github.com/Mean-Finance/uniswap-v3-oracle/actions/workflows/slither.yml)
+[![Lint](https://github.com/Balmy-protocol/uniswap-v3-oracle/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/Balmy-protocol/uniswap-v3-oracle/actions/workflows/lint.yml)
+[![Tests](https://github.com/Balmy-protocol/uniswap-v3-oracle/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Balmy-protocol/uniswap-v3-oracle/actions/workflows/tests.yml)
+[![Slither Analysis](https://github.com/Balmy-protocol/uniswap-v3-oracle/actions/workflows/slither.yml/badge.svg?branch=main)](https://github.com/Balmy-protocol/uniswap-v3-oracle/actions/workflows/slither.yml)
 
 # StaticOracle
 
@@ -17,9 +17,9 @@ StaticOracle will allow developers to:
 
 The package will contain:
 
-- Artifacts can be found under `@mean-finance/uniswap-v3-oracles/artifacts`
-- Compatible deployments for [hardhat-deploy](https://github.com/wighawag/hardhat-deploy) plugin under the `@mean-finance/uniswap-v3-oracle/deployments` folder.
-- Typescript smart contract typings under `@mean-finance/uniswap-v3-oracle/typechained`
+- Artifacts can be found under `@balmy/uniswap-v3-oracles/artifacts`
+- Compatible deployments for [hardhat-deploy](https://github.com/wighawag/hardhat-deploy) plugin under the `@balmy/uniswap-v3-oracle/deployments` folder.
+- Typescript smart contract typings under `@balmy/uniswap-v3-oracle/typechained`
 
 ## Documentation
 
@@ -32,13 +32,13 @@ To install with [**Hardhat**](https://github.com/nomiclabs/hardhat) or [**Truffl
 #### YARN
 
 ```sh
-yarn install @mean-finance/uniswap-v3-oracle
+yarn install @balmy/uniswap-v3-oracle
 ```
 
 ### NPM
 
 ```sh
-npm install @mean-finance/uniswap-v3-oracle
+npm install @balmy/uniswap-v3-oracle
 ```
 
 ### Deployment Registry
